@@ -1,0 +1,17 @@
+name: signal_processing
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python>=3.12
+  - pip
+  # For packaging, and testing
+  - numpy
+  - scipy
+  - matplotlib
+  - gdal
+  - xarray
+  - pillow
+  - jupyter
+  - notebook
+  - geopandas
