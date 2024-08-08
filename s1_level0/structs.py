@@ -8,6 +8,14 @@ Description: Some data structs/tables containing information necessary for decod
 """
 
 
+# Octets / Bytes
+PRIMARY_HEADER_SIZE = 6
+# Octets / Bytes
+SECONDARY_HEADER_SIZE = 62
+# Bits
+WORD_SIZE = 16
+
+
 # Table 2.4-1 from Page 13
 PRIMARY_HEADER = [
     3,   # Packet Version Number

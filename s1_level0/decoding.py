@@ -1,4 +1,7 @@
 from structs import (
+    PRIMARY_HEADER_SIZE,
+    SECONDARY_HEADER_SIZE,
+    WORD_SIZE,
     PRIMARY_HEADER,
     PRIMARY_HEADER_FIELDS,
     SECONDARY_HEADER,
@@ -33,17 +36,16 @@ def get_header_dict(header_bytes, header_bit_lengths, header_field_names):
 
 
 def packet_generator(raw_data):
-    secondary_header_length = 62
     while raw_data:
-        primary_header_bytes = raw_data.read(6)
+        primary_header_bytes = raw_data.read(PRIMARY_HEADER_SIZE)
         primary_header = get_header_dict(primary_header_bytes, PRIMARY_HEADER, PRIMARY_HEADER_FIELDS)
-        secondary_header_bytes = raw_data.read(62)
+        secondary_header_bytes = raw_data.read(SECONDARY_HEADER_SIZE)
         secondary_header = get_header_dict(secondary_header_bytes, SECONDARY_HEADER, SECONDARY_HEADER_FIELDS)
         packet_data_length = primary_header['packet_data_length']
         user_data = None
         if packet_data_length:
             packet_data_length = int(packet_data_length, 2)
-            user_data_length = (packet_data_length + 1) - secondary_header_length
+            user_data_length = (packet_data_length + 1) - SECONDARY_HEADER_SIZE
             if user_data_length > 0:
                 user_data = raw_data.read(user_data_length)
         yield Packet(
@@ -58,7 +60,7 @@ def packet_generator_from_file(filename):
         return packet_generator(data)
 
 
-def build_data_word_dict(PacketGenerator, num_packets, log: bool = True):
+def build_data_word_dict(PacketGenerator, num_packets, log: bool = True, log_interval: int = 10):
     data_word_dicts = []
     sub_comm_dict = SUB_COMM_KEY_VAL.copy()
     
@@ -66,7 +68,7 @@ def build_data_word_dict(PacketGenerator, num_packets, log: bool = True):
     sc_data_word_index = 0
 
     for i in range(num_packets):
-        if log and i % 10 == 0 and i > 0:
+        if log and i % log_interval == 0 and i > 0:
             print(f"Decoded {i} of {num_packets}.")
 
         packet = next(PacketGenerator)
@@ -80,8 +82,8 @@ def build_data_word_dict(PacketGenerator, num_packets, log: bool = True):
                 sub_comm_dict = SUB_COMM_KEY_VAL.copy()
 
         key, pos = SUB_COMM_KEY_POS[sc_data_word_index]
-        pos = pos * 16
-        sub_comm_dict[key] = sub_comm_dict[key][0:pos] + packet.secondary_header['sc_data_word'] + sub_comm_dict[key][pos+16:]
+        pos = pos * WORD_SIZE
+        sub_comm_dict[key] = sub_comm_dict[key][0:pos] + packet.secondary_header['sc_data_word'] + sub_comm_dict[key][pos+WORD_SIZE:]
     
     if sc_data_word_index != initial_data_word_index:
         data_word_dicts.append(sub_comm_dict)

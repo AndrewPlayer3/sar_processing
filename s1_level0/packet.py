@@ -1,6 +1,8 @@
 import numpy as np
 
 from structs import (
+    SECONDARY_HEADER_SIZE,
+    WORD_SIZE,
     SIMPLE_RECONSTRUCTION_METHOD,
     NORMALIZED_RECONSTRUCTION_LEVELS,
     THIDX_TO_SF_ARRAY,
@@ -24,17 +26,6 @@ class Packet:
     ):
         self.primary_header   = primary_header
         self.secondary_header = secondary_header
-        self.raw_user_data    = user_data_field
-
-        self.version_number        = int(primary_header['packet_version_number'], 2)
-        self.type                  = int(primary_header['packet_type'], 2)
-        self.secondary_header_flag = int(primary_header['secondary_header_flag'], 2)
-        self.process_id            = int(primary_header['process_id'], 2)
-        self.process_category      = int(primary_header['process_category'], 2)
-        self.sequence_flags        = int(primary_header['sequence_flags'])
-        self.sequence_count        = int(primary_header['packet_sequence_count'], 2)
-        self.packet_data_length    = int(primary_header['packet_data_length'], 2)
-        self.user_data_length      = (self.packet_data_length + 1) - 62
 
         self.num_quads   = int(self.secondary_header['num_quadratures'], 2)
         self.num_samples = 2 * self.num_quads
@@ -44,22 +35,25 @@ class Packet:
         self.block_length   = int(self.secondary_header['baq_block_length'], 2)
         self.num_baq_blocks = int(np.ceil(2 * self.num_quads / 256))
 
+        self.packet_data_length = int(primary_header['packet_data_length'], 2)
+        self.user_data_length = (self.packet_data_length + 1) - SECONDARY_HEADER_SIZE
+        self._raw_user_data = user_data_field
         self._set_data_format()
         self._decode_user_data_field()
 
 
     def _jump_to_next_word_boundary(self, bit_string, num_bits):
-        offset = num_bits % 16
+        offset = num_bits % WORD_SIZE
         if offset == 0:
             return bit_string, offset
-        next_word_boundary = 16 - offset
+        next_word_boundary = WORD_SIZE - offset
         _, bit_string = read_and_pop(bit_string, next_word_boundary)
         return bit_string, next_word_boundary
 
 
     def _set_num_words_type_d(self):
-        num_words_ie = int(np.ceil(self.block_length * self.num_quads / 16))
-        num_words_qe = int(np.ceil((self.block_length * self.num_quads + 8 * self.num_baq_blocks) / 16))
+        num_words_ie = int(np.ceil(self.block_length * self.num_quads / WORD_SIZE))
+        num_words_qe = int(np.ceil((self.block_length * self.num_quads + 8 * self.num_baq_blocks) / WORD_SIZE))
         self.num_words = (num_words_ie, num_words_qe)
 
 
@@ -89,6 +83,8 @@ class Packet:
 
 
     def _type_d_decoder(self, bit_string, component: str):
+        brc_size = 3
+        threshold_size = 8
         num_bits = 0
         total_bits = 0
         comp_dict = {
@@ -100,13 +96,13 @@ class Packet:
         comp_signs, comp_m_codes = comp_dict[component]
         for i in range(self.num_baq_blocks):
             if component == 'IE':
-                brc, bit_string = read_and_pop(bit_string, 3)
+                brc, bit_string = read_and_pop(bit_string, brc_size)
                 brc = int(brc, 2)
                 if brc > 4:
                     raise ValueError(f'Invalid BRC: {brc} at {i}')
                 self.brc.append(brc)
             if component == 'QE':
-                threshold, bit_string = read_and_pop(bit_string, 8)
+                threshold, bit_string = read_and_pop(bit_string, threshold_size)
                 self.thresholds.append([int(threshold, 2)])
             brc = self.brc[i]
             last_block = i == self.num_baq_blocks - 1
@@ -117,8 +113,8 @@ class Packet:
                 self.brc[i],
                 last_block
             )
-            brc_offset = 3 if component == 'IE' else 0
-            threshold_offset = 8 if component == 'QE' else 0
+            brc_offset = brc_size if component == 'IE' else 0
+            threshold_offset = threshold_size if component == 'QE' else 0
             total_bits += num_bits + brc_offset + threshold_offset
         bit_string, offset = self._jump_to_next_word_boundary(bit_string, total_bits)
         return bit_string, total_bits + offset
@@ -168,13 +164,15 @@ class Packet:
         self.io_signs, self.io_m_codes  = [], []
         self.qe_signs, self.qe_m_codes  = [], []
         self.qo_signs, self.qo_m_codes  = [], []
-        bit_string = create_bit_string(self.raw_user_data)
+        bit_string = create_bit_string(self._raw_user_data)
         bit_string, self.num_ie_bits = self._type_d_decoder(bit_string, 'IE')
         bit_string, self.num_io_bits = self._type_d_decoder(bit_string, 'IO')
         bit_string, self.num_qe_bits = self._type_d_decoder(bit_string, 'QE')
         bit_string, self.num_qo_bits = self._type_d_decoder(bit_string, 'QO')
         self.remaining_user_data_bits = len(bit_string)
         self._type_d_s_value_reconstruction()
+        self._raw_user_data = None
+        del self._raw_user_data
 
 
     def _decode_user_data_field(self):
