@@ -292,7 +292,6 @@ SUB_COMM_KEY_VAL = {
 }
 
 
-
 # Figures 4-7 -> 4-11 from Pages 71 -> 73
 BRC_TO_HUFFMAN_START_BIT_LEN = [1, 1, 1, 2, 2]
 BRC_TO_HUFFMAN_CODING = [
@@ -349,7 +348,6 @@ BRC_TO_HUFFMAN_CODING = [
         '1111111101': 15,
     },
 ]
-
 
 
 # Table 5.2-1 from Page 78
