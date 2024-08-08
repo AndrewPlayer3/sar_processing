@@ -1,3 +1,5 @@
+__pycache__/*
+.ipynb_checkpoints/*
 sar_notebooks/__pycache__/*
 sar_notebooks/.ipynb_checkpoints/*
 s1_level0/__pycache__/*
