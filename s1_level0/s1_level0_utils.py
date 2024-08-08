@@ -126,3 +126,4 @@ def huffman(bit_string: str, brc: int):
             else:
                 m_code += 1
         return m_code, bit_string, bit_len
+
