@@ -50,92 +50,23 @@ SECONDARY_HEADER = [
     24,  # PRI
     24,  # SWST
     24,  # SWL
-    1,   # SSB Flag - "Imaging Mode" is 0, "Calibration Mode" is 1
-    3,   # Polarisation
-    2,   # Temperature Compensation
-    2,   # N/A
-    4,   # Elevation Beam Address or "SAS Test"
-    2,   # N/A
-    10,  # Azimuth Beam Address or Calibration Beam Address
-    2,   # Calibration Mode
-    1,   # N/A
-    5,   # TX Pulse Number
-    4,   # Signal Type
-    3,   # N/A
-    1,   # Swap
-    8,   # Swath Number
+    1,   # SAS SSB MESSAGE > SSB Flag - "Imaging Mode" is 0, "Calibration Mode" is 1
+    3,   # SAS SSB MESSAGE > Polarisation
+    2,   # SAS SSB MESSAGE > Temperature Compensation
+    2,   # SAS SSB MESSAGE > N/A
+    4,   # SAS SSB MESSAGE > Elevation Beam Address or "SAS Test"
+    2,   # SAS SSB MESSAGE > N/A
+    10,  # SAS SSB MESSAGE > Azimuth Beam Address or Calibration Beam Address
+    2,   # SES SSB MESSAGE > Calibration Mode
+    1,   # SES SSB MESSAGE > N/A
+    5,   # SES SSB MESSAGE > TX Pulse Number
+    4,   # SES SSB MESSAGE > Signal Type
+    3,   # SES SSB MESSAGE > N/A
+    1,   # SES SSB MESSAGE > Swap
+    8,   # SES SSB MESSAGE > Swath Number
     16,  # Number of Quadratures
     8,   # N/A
 ]
-
-
-# SAS_SSB_MESSAGE = [
-#     1,  # SSB Flag - "Imaging Mode" is 0, "Calibration Mode" is 1
-#     3,  # Polarisation
-#     2,  # Temperature Compensation
-#     2,  # N/A
-#     4,  # Elevation Beam Address or "SAS Test"
-#     2,  # N/A
-#     10, # Azimuth Beam Address or Calibration Beam Address
-# ]
-
-
-# SES_SSB_MESSAGE = [
-#     2,  # Calibration Mode
-#     1,  # N/A
-#     5,  # TX Pulse Number
-#     4,  # Signal Type
-#     3,  # N/A
-#     1,  # Swap
-#     8,  # Swath Number
-# ]
-
-
-# {'coarse_time': '01010011110111001110110100101010',
-#  'fine_time': '0001111001001101',
-#  'sync_marker': '00110101001011101111100001010011',
-#  'data_take_id': '00001101011011010001010111000000',
-#  'ecc_number': '00001000',
-#  'na_1': '0',
-#  'test_mode': '000',
-#  'rx_channel_id': '0000',
-#  'instrument_configuration_id': '00000000000000000000000000000111',
-#  'sc_data_word_index': '00011011',
-#  'sc_data_word': '1011111011000011',
-#  'counter_service': '00000000000000111010101110010101',
-#  'pri_count': '00000000000000111011011010111000',
-#  'error_flag': '0',
-#  'na_2': '00',
-#  'baq_mode': '01100',
-#  'baq_block_length': '00011111',
-#  'na_3': '00000000',
-#  'range_decimation': '00001000',
-#  'rx_gain': '00001000',
-#  'tx_ramp_rate': '1000011001000101',
-#  'pulse_start_frequency': '0011000000101111',
-#  'pulse_length': '000000000000011110101111',
-#  'na_4': '000',
-#  'rank': '01001',
-#  'pri': '000000000101010101100011',
-#  'swst': '000000000000111001100001',
-#  'swl': '000000000011011010011011',
-#  'ssb_flag': '0',
-#  'polarisation': '111',
-#  'temperature_compensation': '11',
-#  'na_5': '00',
-#  'elevation_beam_address': '0110',
-#  'na_6': '00',
-#  'azimuth_beam_address': '0110000001',
-#  'calibration_mode': '00',
-#  'na_7': '0',
-#  'tx_pulse_number': '00110',
-#  'signal_type': '0000',
-#  'na_8': '000',
-#  'swap': '1',
-#  'swath_number': '00001010',
-#  'num_quadratures': '0010111010100010',
-#  'na_9': '00000000'}
-
 
 
 SECONDARY_HEADER_FIELDS = [
@@ -340,4 +271,40 @@ SUB_COMMUTATIVE_DATA_SERVICE = [
     8, 8, 8, # Tile 14
     9,       # N/A
     7,       # TGU Temperature
+]
+
+
+SIMPLE_RECONSTRUCTION_METHOD_INDEX = {
+    "A3": 0,
+    "A4": 1,
+    "A5": 2,
+    "B0": 3,
+    "B1": 4,
+    "B2": 5,
+    "B3": 6,
+    "B4": 4,
+}
+
+
+SIMPLE_RECONSTRUCTION_METHOD = [
+    [ 3.0000,  3.0000,  3.1200,  3.5500,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
+    [ 7.0000,  7.0000,  7.0000,  7.1700,  7.4000,  7.7600,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
+    [15.0000, 15.0000, 15.0000, 15.0000, 15.0000, 15.0000, 15.4400, 15.5600, 16.1100, 16.3800, 16.6500, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
+    [ 3.0000,  3.0000,  3.1600,  3.5300,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
+    [ 4.0000,  4.0000,  4.0800,  4.3700,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
+    [ 6.0000,  6.0000,  6.0000,  6.1500,  6.5000,  6.8800,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
+    [ 9.0000,  9.0000,  9.0000,  9.0000,  9.3600,  9.5000, 10.1000,  0.0000,  0.0000,  0.0000,  0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
+    [15.0000, 15.0000, 15.0000, 15.0000, 15.0000, 15.0000, 15.2200, 15.5000, 16.0600,  0.0000,  0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
+]
+
+
+NORMALIZED_RECONSTRUCTION_LEVELS [
+    [0.2490, 0.7680, 1.3655, 2.1864, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
+    [0.1290, 0.3900, 0.6601, 0.9471, 1.2623, 1.6261, 2.0793, 2.7467, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
+    [0.0660, 0.1985, 0.3320, 0.4677, 0.6061, 0.7487, 0.8964, 1.0510, 1.2143, 1.3896, 1.5800, 1.7914, 2.0329, 2.3234, 2.6971, 3.2692],
+    [0.3637, 1.0915, 1.8208, 2.6406, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
+    [0.3042, 0.9127, 1.5216, 2.1313, 2.8426, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
+    [0.2305, 0.6916, 1.1528, 1.6140, 2.0754, 2.5369, 3.1191, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
+    [0.1702, 0.5107, 0.8511, 1.1916, 1.5321, 1.8726, 2.2131, 2.5536, 2.8942, 3.3744, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
+    [0.1130, 0.3389, 0.5649, 0.7908, 1.0167, 1.2428, 1.4687, 1.6947, 1.9206, 2.1466, 2.3725, 2.5985, 2.8244, 3.0504, 3.2764, 3.6623],
 ]
