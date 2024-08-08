@@ -7,7 +7,7 @@ from scipy.fft import ifft, fftshift
 from scipy.constants import pi, c
 
 
-class PointTarget:
+class PointTargetKSpace:
     def __init__(
             self,
             range_to_center,
@@ -117,7 +117,8 @@ class PointTarget:
         index = 0
         for x, y, z in zip(self.sensor_x, self.sensor_y, self.sensor_z):
             range_profile = fftshift(ifft(self.signal[:, index], fft_length))
-            range_image = np.sqrt((x - self.image_grid_x)**2 + (y - self.image_grid_y)**2 + (z - self.image_grid_z)**2) - self.range_to_center[index]
+            ranges = np.sqrt((x - self.image_grid_x)**2 + (y - self.image_grid_y)**2 + (z - self.image_grid_z)**2)
+            range_image = ranges - self.range_to_center[index]
             interpolater = scipy.interpolate.interp1d(range_window, range_profile, kind='linear', bounds_error=False, fill_value=0.0)
             backprojected_image += interpolater(range_image) * np.exp(chirp_rate * range_image)
             if num_pulses != 0 and num_pulses == index:
