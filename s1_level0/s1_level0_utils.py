@@ -1,3 +1,11 @@
+"""
+By: Andrew Player
+Description: Some basic utility functions necessary for decoding Level-0 data.
+             For more context, see "SAR Space Packet Protocol Data Unit" at:
+             https://sentinels.copernicus.eu/documents/247904/2142675/Sentinel-1-SAR-Space-Packet-Protocol-Data-Unit.pdf
+"""
+
+
 def create_bit_string(bytes_string: str):
     bit_string = ''
     for byte in bytes_string:

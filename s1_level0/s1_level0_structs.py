@@ -1,3 +1,14 @@
+"""
+By: Andrew Player
+Description: Some data structs/tables containing information necessary for decoding Level-0 Products.
+             These tables are not meant to be efficient or intelligently implemented, they were made as I 
+             went through the document on the fly.
+             They are all from "SAR Space Packet Protocol Data Unit", which can be found at:
+             https://sentinels.copernicus.eu/documents/247904/2142675/Sentinel-1-SAR-Space-Packet-Protocol-Data-Unit.pdf
+"""
+
+
+# Table 2.4-1 from Page 13
 PRIMARY_HEADER = [
     3,   # Packet Version Number
     1,   # Packet Type
@@ -9,6 +20,8 @@ PRIMARY_HEADER = [
     16   # Packet Data Length
 ]
 
+
+# Table 2.4-1 from Page 13
 PRIMARY_HEADER_FIELDS = [
     'packet_version_number',
     'packet_type',
@@ -21,6 +34,7 @@ PRIMARY_HEADER_FIELDS = [
 ]
 
 
+# Tables 3.2-1 -> 3.2-19 from Pages 15 -> 54
 SECONDARY_HEADER = [
     32,  # Coarse Time
     16,  # Fine Time
@@ -69,6 +83,7 @@ SECONDARY_HEADER = [
 ]
 
 
+# Tables 3.2-1 -> 3.2-19 from Pages 15 -> 54
 SECONDARY_HEADER_FIELDS = [
     'coarse_time',
     'fine_time',
@@ -117,6 +132,52 @@ SECONDARY_HEADER_FIELDS = [
 ]
 
 
+# Tables 3.2-5 -> 3.2-10 from Pages 23 -> 27
+SUB_COMMUTATIVE_DATA_SERVICE = [
+    16,      # Dummy Data
+    64,      # X-Axis ECEF Position
+    64,      # Y-Axis ECEF Position
+    64,      # Z-Axis ECEF Position
+    32,      # X-velocity ECEF
+    32,      # Y-velocity ECEF
+    32,      # Z-velocity ECEF
+    16,      # POD Data Stamp 1
+    16,      # Pod Data Stamp 2
+    16,      # Pod Data Stamp 3
+    16,      # Pod Data Stamp 4
+    32,      # Q0 Attitude Quaternion
+    32,      # Q1 Attitude Quaternion
+    32,      # Q2 Attitude Quaternion
+    32,      # Q3 Attitude Quaternion
+    32,      # OmegaX Angular Rate
+    32,      # OmegaY Angular Rate
+    32,      # OmegaZ Angular Rate
+    16,      # Data Time Stamp 1
+    16,      # Data Time Stamp 2
+    16,      # Data Time Stamp 3
+    16,      # Data Time Stamp 4
+    16,      # Pointing Status
+    16,      # Temperature Update Status
+    8, 8, 8, # Tile 1 EFE H, V Temperature and Activate TA Temperature
+    8, 8, 8, # Tile 2
+    8, 8, 8, # Tile 3
+    8, 8, 8, # Tile 4
+    8, 8, 8, # Tile 5
+    8, 8, 8, # Tile 6
+    8, 8, 8, # Tile 7
+    8, 8, 8, # Tile 8
+    8, 8, 8, # Tile 9
+    8, 8, 8, # Tile 10
+    8, 8, 8, # Tile 11
+    8, 8, 8, # Tile 12
+    8, 8, 8, # Tile 13
+    8, 8, 8, # Tile 14
+    9,       # N/A
+    7,       # TGU Temperature
+]
+
+
+# Tables 3.2-5 -> 3.2-10 from Pages 23 -> 27
 SUB_COMM_KEY_POS = [
     ('dummy_data', 0),
     ('x_axis_position', 0),
@@ -186,6 +247,7 @@ SUB_COMM_KEY_POS = [
 ]
 
 
+# Tables 3.2-5 -> 3.2-10 from Pages 23 -> 27
 SUB_COMM_KEY_VAL = {
     'dummy_data': '0000000000000000',
     'x_axis_position':'0000000000000000000000000000000000000000000000000000000000000000',
@@ -230,59 +292,15 @@ SUB_COMM_KEY_VAL = {
 }
 
 
-SUB_COMMUTATIVE_DATA_SERVICE = [
-    16,      # Dummy Data
-    64,      # X-Axis ECEF Position
-    64,      # Y-Axis ECEF Position
-    64,      # Z-Axis ECEF Position
-    32,      # X-velocity ECEF
-    32,      # Y-velocity ECEF
-    32,      # Z-velocity ECEF
-    16,      # POD Data Stamp 1
-    16,      # Pod Data Stamp 2
-    16,      # Pod Data Stamp 3
-    16,      # Pod Data Stamp 4
-    32,      # Q0 Attitude Quaternion
-    32,      # Q1 Attitude Quaternion
-    32,      # Q2 Attitude Quaternion
-    32,      # Q3 Attitude Quaternion
-    32,      # OmegaX Angular Rate
-    32,      # OmegaY Angular Rate
-    32,      # OmegaZ Angular Rate
-    16,      # Data Time Stamp 1
-    16,      # Data Time Stamp 2
-    16,      # Data Time Stamp 3
-    16,      # Data Time Stamp 4
-    16,      # Pointing Status
-    16,      # Temperature Update Status
-    8, 8, 8, # Tile 1 EFE H, V Temperature and Activate TA Temperature
-    8, 8, 8, # Tile 2
-    8, 8, 8, # Tile 3
-    8, 8, 8, # Tile 4
-    8, 8, 8, # Tile 5
-    8, 8, 8, # Tile 6
-    8, 8, 8, # Tile 7
-    8, 8, 8, # Tile 8
-    8, 8, 8, # Tile 9
-    8, 8, 8, # Tile 10
-    8, 8, 8, # Tile 11
-    8, 8, 8, # Tile 12
-    8, 8, 8, # Tile 13
-    8, 8, 8, # Tile 14
-    9,       # N/A
-    7,       # TGU Temperature
-]
-
-
 # Table 5.2-1 from Page 78
 BRC_TO_THIDX  = [3, 3, 5, 6,  8]
 SIMPLE_RECONSTRUCTION_METHOD = [
-    [
+    [   # Values for BAQ Compressed Data ***
         [ 3.0000,  3.0000,  3.1200,  3.5500,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
         [ 7.0000,  7.0000,  7.0000,  7.1700,  7.4000,  7.7600,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
         [15.0000, 15.0000, 15.0000, 15.0000, 15.0000, 15.0000, 15.4400, 15.5600, 16.1100, 16.3800, 16.6500, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
-    ],
-    [
+    ],  
+    [   # Values for FDBAQ Compress Data ***
         [ 3.0000,  3.0000,  3.1600,  3.5300,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
         [ 4.0000,  4.0000,  4.0800,  4.3700,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
         [ 6.0000,  6.0000,  6.0000,  6.1500,  6.5000,  6.8800,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
@@ -295,12 +313,12 @@ SIMPLE_RECONSTRUCTION_METHOD = [
 # Table 5.2-2 from Page 79
 BRC_TO_M_CODE = [3, 4, 6, 9, 15]
 NORMALIZED_RECONSTRUCTION_LEVELS = [
-    [
+    [   # Values for BAQ Compressed Data ***
         [0.2490, 0.7680, 1.3655, 2.1864, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
         [0.1290, 0.3900, 0.6601, 0.9471, 1.2623, 1.6261, 2.0793, 2.7467, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
         [0.0660, 0.1985, 0.3320, 0.4677, 0.6061, 0.7487, 0.8964, 1.0510, 1.2143, 1.3896, 1.5800, 1.7914, 2.0329, 2.3234, 2.6971, 3.2692],
     ],
-    [
+    [   # Values for FDBAQ Compressed Data ***
         [0.3637, 1.0915, 1.8208, 2.6406, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
         [0.3042, 0.9127, 1.5216, 2.1313, 2.8426, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
         [0.2305, 0.6916, 1.1528, 1.6140, 2.0754, 2.5369, 3.1191, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
@@ -308,6 +326,8 @@ NORMALIZED_RECONSTRUCTION_LEVELS = [
         [0.1130, 0.3389, 0.5649, 0.7908, 1.0167, 1.2428, 1.4687, 1.6947, 1.9206, 2.1466, 2.3725, 2.5985, 2.8244, 3.0504, 3.2764, 3.6623],
     ]
 ]
+# *** BAQ compression is used on type C data.
+# *** FDBAQ compression is used on type D data.
 
 
 # Table 5.2-3 from Page 80
