@@ -20,6 +20,7 @@ PRIMARY_HEADER_FIELDS = [
     'packet_data_length'
 ]
 
+
 SECONDARY_HEADER = [
     32,  # Coarse Time
     16,  # Fine Time
@@ -49,11 +50,93 @@ SECONDARY_HEADER = [
     24,  # PRI
     24,  # SWST
     24,  # SWL
-    24,  # SAS SSB Message *** TODO: See Page 43, 44
-    24,  # SES SSB Message *** TODO: See Page 50
+    1,   # SSB Flag - "Imaging Mode" is 0, "Calibration Mode" is 1
+    3,   # Polarisation
+    2,   # Temperature Compensation
+    2,   # N/A
+    4,   # Elevation Beam Address or "SAS Test"
+    2,   # N/A
+    10,  # Azimuth Beam Address or Calibration Beam Address
+    2,   # Calibration Mode
+    1,   # N/A
+    5,   # TX Pulse Number
+    4,   # Signal Type
+    3,   # N/A
+    1,   # Swap
+    8,   # Swath Number
     16,  # Number of Quadratures
     8,   # N/A
 ]
+
+
+# SAS_SSB_MESSAGE = [
+#     1,  # SSB Flag - "Imaging Mode" is 0, "Calibration Mode" is 1
+#     3,  # Polarisation
+#     2,  # Temperature Compensation
+#     2,  # N/A
+#     4,  # Elevation Beam Address or "SAS Test"
+#     2,  # N/A
+#     10, # Azimuth Beam Address or Calibration Beam Address
+# ]
+
+
+# SES_SSB_MESSAGE = [
+#     2,  # Calibration Mode
+#     1,  # N/A
+#     5,  # TX Pulse Number
+#     4,  # Signal Type
+#     3,  # N/A
+#     1,  # Swap
+#     8,  # Swath Number
+# ]
+
+
+# {'coarse_time': '01010011110111001110110100101010',
+#  'fine_time': '0001111001001101',
+#  'sync_marker': '00110101001011101111100001010011',
+#  'data_take_id': '00001101011011010001010111000000',
+#  'ecc_number': '00001000',
+#  'na_1': '0',
+#  'test_mode': '000',
+#  'rx_channel_id': '0000',
+#  'instrument_configuration_id': '00000000000000000000000000000111',
+#  'sc_data_word_index': '00011011',
+#  'sc_data_word': '1011111011000011',
+#  'counter_service': '00000000000000111010101110010101',
+#  'pri_count': '00000000000000111011011010111000',
+#  'error_flag': '0',
+#  'na_2': '00',
+#  'baq_mode': '01100',
+#  'baq_block_length': '00011111',
+#  'na_3': '00000000',
+#  'range_decimation': '00001000',
+#  'rx_gain': '00001000',
+#  'tx_ramp_rate': '1000011001000101',
+#  'pulse_start_frequency': '0011000000101111',
+#  'pulse_length': '000000000000011110101111',
+#  'na_4': '000',
+#  'rank': '01001',
+#  'pri': '000000000101010101100011',
+#  'swst': '000000000000111001100001',
+#  'swl': '000000000011011010011011',
+#  'ssb_flag': '0',
+#  'polarisation': '111',
+#  'temperature_compensation': '11',
+#  'na_5': '00',
+#  'elevation_beam_address': '0110',
+#  'na_6': '00',
+#  'azimuth_beam_address': '0110000001',
+#  'calibration_mode': '00',
+#  'na_7': '0',
+#  'tx_pulse_number': '00110',
+#  'signal_type': '0000',
+#  'na_8': '000',
+#  'swap': '1',
+#  'swath_number': '00001010',
+#  'num_quadratures': '0010111010100010',
+#  'na_9': '00000000'}
+
+
 
 SECONDARY_HEADER_FIELDS = [
     'coarse_time',
@@ -84,11 +167,24 @@ SECONDARY_HEADER_FIELDS = [
     'pri',
     'swst',
     'swl',
-    'sas_ssb_message',
-    'ses_ssb_message',
-    'num_quadratures',
+    'ssb_flag',
+    'polarisation',
+    'temperature_compensation',
     'na_5',
+    'elevation_beam_address',
+    'na_6',
+    'azimuth_beam_address',
+    'calibration_mode',
+    'na_7',
+    'tx_pulse_number',
+    'signal_type',
+    'na_8',
+    'swap',
+    'swath_number',
+    'num_quadratures',
+    'na_9',
 ]
+
 
 SUB_COMM_KEY_POS = [
     ('dummy_data', 0),
@@ -134,7 +230,7 @@ SUB_COMM_KEY_POS = [
     ('data_time_stamp', 3),
     ('pointing_status', 0),
     ('temp_update_status', 0),
-    ('tile_1_1', 0),
+    ('tile_1_1', 0, ),
     ('tile_1_2', 0),
     ('tile_2_2', 0),
     ('tile_3_3', 0),
@@ -158,48 +254,50 @@ SUB_COMM_KEY_POS = [
     ('na_tgu_temp', 0),
 ]
 
+
 SUB_COMM_KEY_VAL = {
-    'dummy_data': None,
-    'x_axis_position': [0, 0, 0, 0],
-    'y_axis_position': [0, 0, 0, 0],
-    'z_axis_position': [0, 0, 0, 0],
-    'x_axis_velocity': [0, 0],
-    'y_axis_velocity': [0, 0],
-    'z_axis_velocity': [0, 0],
-    'pod_data_stamp': [0, 0, 0, 0],
-    'q0_quaternion': [0, 0],
-    'q1_quaternion': [0, 0],
-    'q2_quaternion': [0, 0],
-    'q3_quaternion': [0, 0],
-    'omega_x': [0, 0],
-    'omega_y': [0, 0],
-    'omega_z': [0, 0],
-    'data_time_stamp': [0, 0, 0, 0],
-    'pointing_status': None,
-    'temp_update_status': None,
-    'tile_1_1': None,
-    'tile_1_2': None,
-    'tile_2_2': None,
-    'tile_3_3': None,
-    'tile_3_4': None,
-    'tile_4_4': None,
-    'tile_5_5': None,
-    'tile_5_6': None,
-    'tile_6_6': None,
-    'tile_7_7': None,
-    'tile_7_8': None,
-    'tile_8_8': None,
-    'tile_9_9': None,
-    'tile_9_10': None,
-    'tile_10_10': None,
-    'tile_11_11': None,
-    'tile_11_12': None,
-    'tile_12_12': None,
-    'tile_13_13': None,
-    'tile_13_14': None,
-    'tile_14_14': None,
-    'na_tgu_temp': None
+    'dummy_data': '0000000000000000',
+    'x_axis_position':'0000000000000000000000000000000000000000000000000000000000000000',
+    'y_axis_position': '0000000000000000000000000000000000000000000000000000000000000000',
+    'z_axis_position': '0000000000000000000000000000000000000000000000000000000000000000',
+    'x_axis_velocity': '00000000000000000000000000000000',
+    'y_axis_velocity': '00000000000000000000000000000000',
+    'z_axis_velocity': '00000000000000000000000000000000',
+    'pod_data_stamp': '00000000000000000000000000000000',
+    'q0_quaternion': '00000000000000000000000000000000',
+    'q1_quaternion': '00000000000000000000000000000000',
+    'q2_quaternion': '00000000000000000000000000000000',
+    'q3_quaternion': '00000000000000000000000000000000',
+    'omega_x': '00000000000000000000000000000000',
+    'omega_y': '00000000000000000000000000000000',
+    'omega_z': '00000000000000000000000000000000',
+    'data_time_stamp': '0000000000000000000000000000000000000000000000000000000000000000',
+    'pointing_status': '0000000000000000',
+    'temp_update_status': '0000000000000000',
+    'tile_1_1': '0000000000000000',
+    'tile_1_2': '0000000000000000',
+    'tile_2_2': '0000000000000000',
+    'tile_3_3': '0000000000000000',
+    'tile_3_4': '0000000000000000',
+    'tile_4_4': '0000000000000000',
+    'tile_5_5': '0000000000000000',
+    'tile_5_6': '0000000000000000',
+    'tile_6_6': '0000000000000000',
+    'tile_7_7': '0000000000000000',
+    'tile_7_8': '0000000000000000',
+    'tile_8_8': '0000000000000000',
+    'tile_9_9': '0000000000000000',
+    'tile_9_10': '0000000000000000',
+    'tile_10_10': '0000000000000000',
+    'tile_11_11': '0000000000000000',
+    'tile_11_12': '0000000000000000',
+    'tile_12_12': '0000000000000000',
+    'tile_13_13': '0000000000000000',
+    'tile_13_14': '0000000000000000',
+    'tile_14_14': '0000000000000000',
+    'na_tgu_temp': '0000000000000000'
 }
+
 
 SUB_COMMUTATIVE_DATA_SERVICE = [
     16,      # Dummy Data
