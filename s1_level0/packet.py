@@ -172,16 +172,19 @@ class Packet:
 
 
     def _decode_user_data_field(self):
-        if self.data_format == 'A':
-            raise NotImplementedError("Data Format A is not supported yet...")
-        elif self.data_format == 'B':
-            raise NotImplementedError("Data Format B is not supported yet...")
-        elif self.data_format == 'C':
-            raise NotImplementedError("Data Format C is not supported yet...")
-        elif self.data_format == 'D':
-            self._decode_type_d_data()
-        else:
-            raise ValueError('Packet does not have a valid data format.')
+        try:
+            if self.data_format == 'A':
+                raise NotImplementedError("Data Format A is not supported yet...")
+            elif self.data_format == 'B':
+                raise NotImplementedError("Data Format B is not supported yet...")
+            elif self.data_format == 'C':
+                raise NotImplementedError("Data Format C is not supported yet...")
+            elif self.data_format == 'D':
+                self._decode_type_d_data()
+            else:
+                raise ValueError('Packet does not have a valid data format.')
+        except Exception as e:
+            print(f"Error encountered with data format, skipping user data decoding: {e}")
 
 
     def _set_data_format(self):
