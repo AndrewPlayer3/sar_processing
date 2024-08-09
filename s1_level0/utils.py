@@ -19,7 +19,7 @@ def read_and_pop(bit_string: str, bit_length: int):
     return bit_string[0:bit_length], bit_string[bit_length:]
 
 
-def huffman_(bit_string, start_bit_len, bit_pattern_to_code):
+def huffman_decode(bit_string, start_bit_len, bit_pattern_to_code):
     bits = ''
     bit_len = start_bit_len
     temp_bit_string = ''
@@ -31,8 +31,8 @@ def huffman_(bit_string, start_bit_len, bit_pattern_to_code):
     return bit_pattern_to_code[bits], temp_bit_string, bit_len
 
 
-def huffman(bit_string: str, brc: int):
-    return huffman_(
+def huffman_decode_for_brc(bit_string: str, brc: int):
+    return huffman_decode(
         bit_string,
         BRC_TO_HUFFMAN_START_BIT_LEN[brc],
         BRC_TO_HUFFMAN_CODING[brc]

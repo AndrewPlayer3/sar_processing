@@ -13,7 +13,7 @@ from structs import (
 from utils import (
     create_bit_string,
     read_and_pop,
-    huffman,
+    huffman_decode_for_brc,
 )
 
 
@@ -72,7 +72,7 @@ class Packet:
         num_s_codes = 128 if not last_block else self.num_quads - (128 * (self.num_baq_blocks - 1))
         while s_code_count < num_s_codes:
             sign, bit_string = read_and_pop(bit_string, 1)
-            m_code, bit_string, bit_len = huffman(bit_string, brc)
+            m_code, bit_string, bit_len = huffman_decode_for_brc(bit_string, brc)
             signs.append(int(sign, 2))
             m_codes.append(m_code)
             s_code_count += 1
