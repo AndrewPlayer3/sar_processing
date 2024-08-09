@@ -20,6 +20,8 @@ from utils import (
 
 
 class Packet:
+    # TODO: Implement use of the annot.dat file to grab the locations of each packet
+    #       so that packet processing can be parallelized.
     def __init__(
         self,
         primary_header,
@@ -174,10 +176,14 @@ class Packet:
             threshold_index = self.thresholds[block_id][0]
             block_len = len(self.ie_m_codes[block_id])
             for s_code_id in range(block_len):
-                ie_s_value = self.__get_type_d_s_value(brc, threshold_index, self.ie_m_codes[block_id][s_code_id], self.ie_signs[block_id][s_code_id])
-                io_s_value = self.__get_type_d_s_value(brc, threshold_index, self.io_m_codes[block_id][s_code_id], self.io_signs[block_id][s_code_id])
-                qe_s_value = self.__get_type_d_s_value(brc, threshold_index, self.qe_m_codes[block_id][s_code_id], self.qe_signs[block_id][s_code_id])
-                qo_s_value = self.__get_type_d_s_value(brc, threshold_index, self.qo_m_codes[block_id][s_code_id], self.qo_signs[block_id][s_code_id])
+                ie_sign, ie_m_code = self.ie_signs[block_id][s_code_id], self.ie_m_codes[block_id][s_code_id]
+                io_sign, io_m_code = self.io_signs[block_id][s_code_id], self.io_m_codes[block_id][s_code_id]
+                qe_sign, qe_m_code = self.qe_signs[block_id][s_code_id], self.qe_m_codes[block_id][s_code_id]
+                qo_sign, qo_m_code = self.qo_signs[block_id][s_code_id], self.qo_m_codes[block_id][s_code_id]
+                ie_s_value = self.__get_type_d_s_value(brc, threshold_index, ie_m_code, ie_sign)
+                io_s_value = self.__get_type_d_s_value(brc, threshold_index, io_m_code, io_sign)
+                qe_s_value = self.__get_type_d_s_value(brc, threshold_index, qe_m_code, qe_sign)
+                qo_s_value = self.__get_type_d_s_value(brc, threshold_index, qo_m_code, qo_sign)
                 component_s_values = [ie_s_value, io_s_value, qe_s_value, qo_s_value]
                 self.s_values.append(component_s_values)
         complex_s_value = np.zeros((2 * self.__num_quads, ), dtype=complex)
@@ -189,6 +195,9 @@ class Packet:
 
 
     def __decode_type_d_data(self):
+        # TODO: It's probably not necessary to actually store all of the signs
+        #       and m_codes in the object. It may be better to just return the
+        #       arrays and only set the complex s_values in the object.
         self.brc        = []
         self.thresholds = []
         self.ie_signs, self.ie_m_codes  = [], []

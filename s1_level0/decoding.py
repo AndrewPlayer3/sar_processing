@@ -13,6 +13,8 @@ from structs import (
 from packet import Packet
 from utils import create_bit_string
 
+# TODO: Implement use of the annot.dat file to grab the locations of each packet
+#       so that packet processing can be parallelized.
 
 def get_header_dict(header_bytes, header_bit_lengths, header_field_names):
     read_and_pop = lambda bit_string, bit_length: (bit_string[0:bit_length], bit_string[bit_length:])
