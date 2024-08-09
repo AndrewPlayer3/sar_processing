@@ -12,7 +12,7 @@ def time_packet_generation(PacketGenerator, num_packets, perf_log_interval, log:
         runtime = end_time - start_time
         times.append(runtime)
         if log and i % perf_log_interval == 0:
-            print(f"Decoded Packet in {runtime}s.")
+            print(f"Decoded Packet {i} of {num_packets} in {runtime}s.")
     time_arr = np.asarray(times)
     mean = time_arr.mean()
     total = sum(times)
