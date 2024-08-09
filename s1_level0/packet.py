@@ -155,16 +155,16 @@ class Packet:
         m_code_comp_flag = BRC_TO_M_CODE[brc]
         if threshold_index <= thidx_comp_flag:
             if m_code < m_code_comp_flag:
-                return (-1 ** sign) * m_code
+                return np.power(-1, sign) * m_code
             elif m_code == m_code_comp_flag:
                 simple_recon = SIMPLE_RECONSTRUCTION_METHOD[1][brc][threshold_index]
-                return ((-1) ** sign) * simple_recon
+                return np.power(-1, sign) * simple_recon
             else:
                 raise ValueError(f'm_code not valid: {m_code}')
         elif threshold_index > thidx_comp_flag:
             normal_recon = NORMALIZED_RECONSTRUCTION_LEVELS[1][brc][m_code]
             sigma_factor = THIDX_TO_SF_ARRAY[threshold_index]
-            return (-1 ** sign) * normal_recon * sigma_factor
+            return np.power(-1, sign) * normal_recon * sigma_factor
 
 
     def __type_d_s_value_reconstruction(self):
