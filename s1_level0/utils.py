@@ -27,6 +27,8 @@ def huffman_decode(bit_string, start_bit_len, bit_pattern_to_code):
         bits, temp_bit_string = read_and_pop(bit_string, bit_len)
         if bits not in bit_pattern_to_code:
             bit_len += 1
+        if bit_len > 10:
+            raise ValueError(f"Huffman pattern matching exceeded max length. Bits: {bits}, Pattern: {bit_pattern_to_code}")
     return bit_pattern_to_code[bits], temp_bit_string, bit_len
 
 
