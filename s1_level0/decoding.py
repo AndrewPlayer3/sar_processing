@@ -11,19 +11,16 @@ from structs import (
 )
 
 from packet import Packet
+from utils import create_bit_string
 
 
 def get_header_dict(header_bytes, header_bit_lengths, header_field_names):
     read_and_pop = lambda bit_string, bit_length: (bit_string[0:bit_length], bit_string[bit_length:])
-    bit_string = ''
-    for byte in header_bytes:
-        bit_string += '{:08b}'.format(byte)
-
+    bit_string = create_bit_string(header_bytes)
     header_value_array = []
     for bit_len in header_bit_lengths:
         header_field_value, bit_string = read_and_pop(bit_string, bit_len)
         header_value_array.append(header_field_value) 
-
     index = 0
     header_dict = {}
     for field in header_field_names:
@@ -31,7 +28,6 @@ def get_header_dict(header_bytes, header_bit_lengths, header_field_names):
             raise ValueError('The number of field names and header values does not match.')
         header_dict[field] = header_value_array[index]
         index += 1
-
     return header_dict
 
 
