@@ -199,3 +199,58 @@ class Packet:
             self.data_format = 'D'
         else:
             raise ValueError(f'No Data Format with BAQ Mode: {self.baq_mode} and Test Mode: {self.test_mode}')
+
+
+    def __repr__(self):
+        return (
+            f"Packet Type: {self.data_format}\n" +
+            "--------------\n\n" +
+
+            "Primary Header:\n" +
+            "---------------\n" +
+            f"Packet Version Number: {int(self.primary_header['packet_version_number'], 2)}\n" +
+            f"Packet Type: {int(self.primary_header['packet_type'], 2)}\n" +
+            f"Secondary Header Flag: {int(self.primary_header['secondary_header_flag'], 2)}\n" +
+            f"Process ID: {int(self.primary_header['process_id'], 2)}\n" +
+            f"Process Category: {int(self.primary_header['process_category'], 2)}\n" +
+            f"Packet Sequence Count: {int(self.primary_header['packet_sequence_count'], 2)}\n" +
+            f"Packet Data Length: {int(self.primary_header['packet_data_length'], 2)}\n\n" +
+
+            f"Secondary Header:\n" +
+            "-----------------\n" +
+            f"Coarse Time: {int(self.secondary_header['coarse_time'], 2)}\n" +
+            f"Fine Time: {int(self.secondary_header['fine_time'], 2)}\n" +
+            f"Sync Marker: {int(self.secondary_header['sync_marker'], 2)}\n" +
+            f"Data Take ID: {int(self.secondary_header['data_take_id'], 2)}\n" +
+            f"ECC Code: {int(self.secondary_header['ecc_number'], 2)}\n" +
+            f"Test Mode: {int(self.secondary_header['test_mode'], 2)}\n" +
+            f"RX Channel ID: {int(self.secondary_header['rx_channel_id'], 2)}\n" +
+            f"Instrument Configuration ID: {int(self.secondary_header['instrument_configuration_id'], 2)}\n" +
+            f"Sub-Commutative Word Index: {int(self.secondary_header['sc_data_word_index'], 2)}\n" +
+            f"Sub-Commutative Word: {self.secondary_header['sc_data_word']}\n" +
+            f"Counter Service: {int(self.secondary_header['counter_service'], 2)}\n" +
+            f"PRI Count: {int(self.secondary_header['pri_count'], 2)}\n" +
+            f"Error Flag: {int(self.secondary_header['error_flag'], 2)}\n" +
+            f"BAQ Mode: {int(self.secondary_header['baq_mode'], 2)}\n" +
+            f"BAQ Block Length: {int(self.secondary_header['baq_block_length'], 2)}\n" +
+            f"Range Decimation: {int(self.secondary_header['range_decimation'], 2)}\n" +
+            f"RX Gain: {int(self.secondary_header['rx_gain'], 2)}\n" +
+            f"TX Ramp Rate: {int(self.secondary_header['tx_ramp_rate'], 2)}\n" +
+            f"Pulse Start Frequency: {int(self.secondary_header['pulse_start_frequency'], 2)}\n" +
+            f"Pulse Length: {int(self.secondary_header['pulse_length'], 2)}\n" +
+            f"Rank: {int(self.secondary_header['rank'], 2)}\n" +
+            f"PRI: {int(self.secondary_header['pri'], 2)}\n" +
+            f"SWST: {int(self.secondary_header['swst'], 2)}\n" +
+            f"SWL: {int(self.secondary_header['swl'], 2)}\n" +
+            f"SSB Flag: {int(self.secondary_header['ssb_flag'], 2)}\n" +
+            f"Polarisation: {int(self.secondary_header['polarisation'], 2)}\n" +
+            f"Temperature Compensation: {int(self.secondary_header['temperature_compensation'], 2)}\n" +
+            f"Elevation Beam Address: {int(self.secondary_header['elevation_beam_address'], 2)}\n" +
+            f"Azimuth Beam Address: {int(self.secondary_header['azimuth_beam_address'], 2)}\n" +
+            f"Calibration Mode: {int(self.secondary_header['calibration_mode'], 2)}\n" +
+            f"TX Pulse Number: {int(self.secondary_header['tx_pulse_number'], 2)}\n" +
+            f"Signal Type: {int(self.secondary_header['signal_type'], 2)}\n" +
+            f"Swap: {int(self.secondary_header['swap'], 2)}\n" +
+            f"Swath Number: {int(self.secondary_header['swath_number'], 2)}\n" +
+            f"Number of Quads: {int(self.secondary_header['num_quadratures'], 2)}\n"
+        )
