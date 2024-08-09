@@ -124,6 +124,8 @@ class Packet:
             elif m_code == m_code_comp_flag:
                 simple_recon = SIMPLE_RECONSTRUCTION_METHOD[1][brc][threshold_index]
                 return ((-1) ** sign) * simple_recon
+            else:
+                raise ValueError(f'm_code not valid: {m_code}')
         elif threshold_index > thidx_comp_flag:
             normal_recon = NORMALIZED_RECONSTRUCTION_LEVELS[1][brc][m_code]
             sigma_factor = THIDX_TO_SF_ARRAY[threshold_index]
@@ -171,13 +173,15 @@ class Packet:
 
     def _decode_user_data_field(self):
         if self.data_format == 'A':
-            pass
+            raise NotImplementedError("Data Format A is not supported yet...")
         elif self.data_format == 'B':
-            pass
+            raise NotImplementedError("Data Format B is not supported yet...")
         elif self.data_format == 'C':
-            pass
+            raise NotImplementedError("Data Format C is not supported yet...")
         elif self.data_format == 'D':
             self._decode_type_d_data()
+        else:
+            raise ValueError('Packet does not have a valid data format.')
 
 
     def _set_data_format(self):
