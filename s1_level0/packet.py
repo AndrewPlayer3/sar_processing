@@ -237,6 +237,7 @@ class Packet:
 
 
     def __repr__(self):
+        # TODO: Cast to the correct types.
         return (
             f"Packet Type: {self.__data_format}\n" +
             "--------------\n\n" +
