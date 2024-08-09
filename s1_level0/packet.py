@@ -67,12 +67,12 @@ class Packet:
 
     def primary_header(self):
         # TODO: Return primary header with proper data types.
-        raise NotImplementedError()
+        return self.__primary_header
     
 
     def secondary_header(self):
         # TODO: Return secondary header with proper data types.
-        raise NotImplementedError()
+        return self.__secondary_header
 
 
     def sensor_mode(self):

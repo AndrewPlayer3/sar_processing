@@ -73,7 +73,7 @@ def build_data_word_dict(PacketGenerator, num_packets, log: bool = True, log_int
 
         packet = next(PacketGenerator)
 
-        sc_data_word_index = int(packet.secondary_header['sc_data_word_index'], 2)
+        sc_data_word_index = int(packet.secondary_header()['sc_data_word_index'], 2)
         if i == 0:
             initial_data_word_index = sc_data_word_index
         else:
@@ -83,7 +83,7 @@ def build_data_word_dict(PacketGenerator, num_packets, log: bool = True, log_int
 
         key, pos = SUB_COMM_KEY_POS[sc_data_word_index]
         pos = pos * WORD_SIZE
-        sub_comm_dict[key] = sub_comm_dict[key][0:pos] + packet.secondary_header['sc_data_word'] + sub_comm_dict[key][pos+WORD_SIZE:]
+        sub_comm_dict[key] = sub_comm_dict[key][0:pos] + packet.secondary_header()['sc_data_word'] + sub_comm_dict[key][pos+WORD_SIZE:]
     
     if sc_data_word_index != initial_data_word_index:
         data_word_dicts.append(sub_comm_dict)
