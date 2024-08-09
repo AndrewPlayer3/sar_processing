@@ -40,6 +40,7 @@ class Packet:
         self.packet_data_length = int(primary_header['packet_data_length'], 2)
         self.user_data_length = (self.packet_data_length + 1) - SECONDARY_HEADER_SIZE
         self._raw_user_data = user_data_field
+
         self._set_data_format()
         self._decode_user_data_field()
 
@@ -180,8 +181,6 @@ class Packet:
 
 
     def _set_data_format(self):
-        self.test_mode = int(self.secondary_header['test_mode'], 2)
-        self.baq_mode  = int(self.secondary_header['baq_mode'], 2)
         if self.baq_mode == 0:
             if self.test_mode % 3 == 0:
                 self.data_format = 'A'
