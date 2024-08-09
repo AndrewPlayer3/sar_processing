@@ -1,6 +1,8 @@
 import numpy as np
 
 from structs import (
+    BRC_TO_HUFFMAN_START_BIT_LEN, 
+    BRC_TO_HUFFMAN_CODING,
     SECONDARY_HEADER_SIZE,
     WORD_SIZE,
     SIMPLE_RECONSTRUCTION_METHOD,
@@ -13,7 +15,7 @@ from structs import (
 from utils import (
     create_bit_string,
     read_and_pop,
-    huffman_decode_for_brc,
+    huffman_decode
 )
 
 
@@ -51,35 +53,27 @@ class Packet:
         return bit_string, next_word_boundary
 
 
-    def _set_num_words_type_d(self):
-        num_words_ie = int(np.ceil(self.block_length * self.num_quads / WORD_SIZE))
-        num_words_qe = int(np.ceil((self.block_length * self.num_quads + 8 * self.num_baq_blocks) / WORD_SIZE))
-        self.num_words = (num_words_ie, num_words_qe)
-
-
-    def _append_type_d_signs_and_m_codes(
+    def _get_type_d_signs_and_m_codes(
         self,
-        comp_signs: list,
-        comp_m_codes: list,
         bit_string: str,
         brc: int,
         last_block: bool
     ) -> tuple[list[int], list[int], str]:
         signs = []
         m_codes = []
-        s_code_count = 0
         total_bits = 0
         num_s_codes = 128 if not last_block else self.num_quads - (128 * (self.num_baq_blocks - 1))
-        while s_code_count < num_s_codes:
+        for _ in range(num_s_codes):
             sign, bit_string = read_and_pop(bit_string, 1)
-            m_code, bit_string, bit_len = huffman_decode_for_brc(bit_string, brc)
+            m_code, bit_string, bit_len = huffman_decode(
+                bit_string,
+                BRC_TO_HUFFMAN_START_BIT_LEN[brc],
+                BRC_TO_HUFFMAN_CODING[brc]
+            )
             signs.append(int(sign, 2))
             m_codes.append(m_code)
-            s_code_count += 1
             total_bits += (bit_len + 1)
-        comp_signs.append(signs)
-        comp_m_codes.append(m_codes)
-        return bit_string, total_bits
+        return signs, m_codes, bit_string, total_bits
 
 
     def _type_d_decoder(self, bit_string, component: str):
@@ -106,13 +100,13 @@ class Packet:
                 self.thresholds.append([int(threshold, 2)])
             brc = self.brc[i]
             last_block = i == self.num_baq_blocks - 1
-            bit_string, num_bits = self._append_type_d_signs_and_m_codes(
-                comp_signs,
-                comp_m_codes,
+            signs, m_codes, bit_string, num_bits = self._get_type_d_signs_and_m_codes(
                 bit_string,
                 self.brc[i],
                 last_block
             )
+            comp_signs.append(signs)
+            comp_m_codes.append(m_codes)
             brc_offset = brc_size if component == 'IE' else 0
             threshold_offset = threshold_size if component == 'QE' else 0
             total_bits += num_bits + brc_offset + threshold_offset
@@ -156,8 +150,7 @@ class Packet:
         self.complex_s_values = complex_s_value
 
 
-    def _decode_type_d_data(self):    
-        self._set_num_words_type_d()
+    def _decode_type_d_data(self):
         self.brc        = []
         self.thresholds = []
         self.ie_signs, self.ie_m_codes  = [], []

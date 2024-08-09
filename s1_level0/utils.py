@@ -24,8 +24,7 @@ def huffman_decode(bit_string, start_bit_len, bit_pattern_to_code):
     bit_len = start_bit_len
     temp_bit_string = ''
     while bits not in bit_pattern_to_code:
-        bit_pattern, temp_bit_string = read_and_pop(bit_string, bit_len)
-        bits = bit_pattern
+        bits, temp_bit_string = read_and_pop(bit_string, bit_len)
         if bits not in bit_pattern_to_code:
             bit_len += 1
     return bit_pattern_to_code[bits], temp_bit_string, bit_len
