@@ -201,9 +201,6 @@ class Packet:
 
 
     def __decode_type_d_data(self):
-        # TODO: It's probably not necessary to actually store all of the signs
-        #       and m_codes in the object. It may be better to just return the
-        #       arrays and only set the complex s_values in the object.
         self.brc        = []
         self.thresholds = []
         bit_string = create_bit_string(self.__raw_user_data)
@@ -263,7 +260,6 @@ class Packet:
 
 
     def __decode_user_data_field(self):
-        # TODO: Implement type C packets
         self.ie_signs, self.ie_m_codes  = [], []
         self.io_signs, self.io_m_codes  = [], []
         self.qe_signs, self.qe_m_codes  = [], []
@@ -280,7 +276,9 @@ class Packet:
             elif self.__data_format == 'B':
                 self.__decode_type_a_b_data()
             elif self.__data_format == 'C':
-                raise NotImplementedError("Data Format C is not supported yet...")
+                # Type C is not (forseen to be) used in nominal operation.
+                # This will not be supported until I come across it.
+                raise NotImplementedError("Data Format C is not supported.")
             elif self.__data_format == 'D':
                 self.__decode_type_d_data()
             else:
