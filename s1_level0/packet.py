@@ -44,41 +44,46 @@ class Packet:
         self.__decode_user_data_field()
 
 
-    def num_quads(self):
+    def num_quads(self) -> int:
         return self.__num_quads
 
 
-    def num_baq_blocks(self):
+    def num_baq_blocks(self) -> int:
         return self.__num_baq_blocks
 
 
-    def test_mode(self):
+    def test_mode(self) -> int:
         return self.__test_mode
 
 
-    def baq_mode(self):
+    def baq_mode(self) -> int:
         return self.__baq_mode
 
     
-    def user_data_length(self):
+    def user_data_length(self) -> int:
         return self.__user_data_length
 
 
-    def data_format(self):
+    def data_format(self) -> str:
         return self.__data_format
 
 
-    def primary_header(self):
+    def bit_counts(self) -> list[int]:
+        """Number of bits consumed by the IE, IO, QE, and QO components, respectively."""
+        return self.__bit_counts
+
+
+    def primary_header(self) -> dict:
         # TODO: Return primary header with proper data types.
         return self.__primary_header
     
 
-    def secondary_header(self):
+    def secondary_header(self) -> dict:
         # TODO: Return secondary header with proper data types.
         return self.__secondary_header
 
 
-    def get_pulse_ramp_rate(self):
+    def get_pulse_ramp_rate(self) -> np.float64:
         bits = self.__secondary_header['tx_pulse_ramp_rate']
         sign = not int(bits[0])
         txprr = int(bits[1:])
@@ -86,12 +91,12 @@ class Packet:
         return tx_pulse_ramp_rate
 
 
-    def sensor_mode(self):
+    def sensor_mode(self) -> str:
         ecc_code = int(self.__secondary_header['ecc_number'], 2)
         return ECC_CODE_TO_SENSOR_MODE[ecc_code]
 
 
-    def __jump_to_next_word_boundary(self, bit_string, num_bits):
+    def __jump_to_next_word_boundary(self, bit_string, num_bits) -> tuple[str, int]:
         offset = num_bits % WORD_SIZE
         if offset == 0:
             return bit_string, offset
@@ -105,7 +110,7 @@ class Packet:
         bit_string: str,
         brc: int,
         last_block: bool
-    ) -> tuple[list[int], list[int], str]:
+    ) -> tuple[list[int], list[int], str, int]:
         signs = []
         m_codes = []
         total_bits = 0
@@ -124,7 +129,7 @@ class Packet:
         return signs, m_codes, bit_string, total_bits
 
 
-    def __type_d_decoder(self, bit_string, component: str):
+    def __type_d_decoder(self, bit_string, component: str) -> tuple[str, int]:
         brc_size = 3
         threshold_size = 8
         num_bits = 0
@@ -156,7 +161,7 @@ class Packet:
         return bit_string, total_bits + offset
 
 
-    def __get_type_d_s_value(self, brc, threshold_index, m_code, sign):
+    def __get_type_d_s_value(self, brc, threshold_index, m_code, sign) -> np.float64:
         thidx_comp_flag = BRC_TO_THIDX[brc]
         m_code_comp_flag = BRC_TO_M_CODE[brc]
         if threshold_index <= thidx_comp_flag:
@@ -173,17 +178,17 @@ class Packet:
             return np.power(-1, sign) * normal_recon * sigma_factor
 
 
-    def __type_d_s_value_reconstruction(self):
+    def __type_d_s_value_reconstruction(self) -> None:
         self.s_values = []
         for block_id in range(self.__num_baq_blocks):
             brc = self.brc[block_id]
             threshold_index = self.thresholds[block_id][0]
-            block_len = len(self.ie_m_codes[block_id])
+            block_len = len(self.__ie_m_codes[block_id])
             for s_code_id in range(block_len):
-                ie_sign, ie_m_code = self.ie_signs[block_id][s_code_id], self.ie_m_codes[block_id][s_code_id]
-                io_sign, io_m_code = self.io_signs[block_id][s_code_id], self.io_m_codes[block_id][s_code_id]
-                qe_sign, qe_m_code = self.qe_signs[block_id][s_code_id], self.qe_m_codes[block_id][s_code_id]
-                qo_sign, qo_m_code = self.qo_signs[block_id][s_code_id], self.qo_m_codes[block_id][s_code_id]
+                ie_sign, ie_m_code = self.__ie_signs[block_id][s_code_id], self.__ie_m_codes[block_id][s_code_id]
+                io_sign, io_m_code = self.__io_signs[block_id][s_code_id], self.__io_m_codes[block_id][s_code_id]
+                qe_sign, qe_m_code = self.__qe_signs[block_id][s_code_id], self.__qe_m_codes[block_id][s_code_id]
+                qo_sign, qo_m_code = self.__qo_signs[block_id][s_code_id], self.__qo_m_codes[block_id][s_code_id]
                 ie_s_value = self.__get_type_d_s_value(brc, threshold_index, ie_m_code, ie_sign)
                 io_s_value = self.__get_type_d_s_value(brc, threshold_index, io_m_code, io_sign)
                 qe_s_value = self.__get_type_d_s_value(brc, threshold_index, qe_m_code, qe_sign)
@@ -198,29 +203,29 @@ class Packet:
         self.complex_s_values = complex_s_value
 
 
-    def __decode_type_d_data(self):
+    def __decode_type_d_data(self) -> None:
         self.brc        = []
         self.thresholds = []
+        self.__bit_counts = [0, 0, 0, 0]
         bit_string = create_bit_string(self.__raw_user_data)
-        bit_string, self.num_ie_bits = self.__type_d_decoder(bit_string, 'IE')
-        bit_string, self.num_io_bits = self.__type_d_decoder(bit_string, 'IO')
-        bit_string, self.num_qe_bits = self.__type_d_decoder(bit_string, 'QE')
-        bit_string, self.num_qo_bits = self.__type_d_decoder(bit_string, 'QO')
-        self.remaining_user_data_bits = len(bit_string)
+        bit_string, self.__bit_counts[0] = self.__type_d_decoder(bit_string, 'IE')
+        bit_string, self.__bit_counts[1] = self.__type_d_decoder(bit_string, 'IO')
+        bit_string, self.__bit_counts[2] = self.__type_d_decoder(bit_string, 'QE')
+        bit_string, self.__bit_counts[3] = self.__type_d_decoder(bit_string, 'QO')
         self.__type_d_s_value_reconstruction()
         self.__raw_user_data = None
         del self.__raw_user_data
 
 
-    def __type_a_b_s_value_reconstruction(self):
+    def __type_a_b_s_value_reconstruction(self) -> None:
         self.s_values = []
-        num_s_codes = len(self.ie_signs)
+        num_s_codes = len(self.__ie_signs)
         construct_s_value = lambda sign, m_code: np.power(-1, sign) * m_code
         for i in range(num_s_codes):
-            ie_s_value = construct_s_value(self.ie_signs[i], self.ie_m_codes[i])
-            io_s_value = construct_s_value(self.io_signs[i], self.io_m_codes[i])
-            qe_s_value = construct_s_value(self.qe_signs[i], self.qe_m_codes[i])
-            qo_s_value = construct_s_value(self.qo_signs[i], self.qo_m_codes[i])
+            ie_s_value = construct_s_value(self.__ie_signs[i], self.__ie_m_codes[i])
+            io_s_value = construct_s_value(self.__io_signs[i], self.__io_m_codes[i])
+            qe_s_value = construct_s_value(self.__qe_signs[i], self.__qe_m_codes[i])
+            qo_s_value = construct_s_value(self.__qo_signs[i], self.__qo_m_codes[i])
             self.s_values.append([ie_s_value, io_s_value, qe_s_value, qo_s_value])
         complex_s_value = np.zeros((2 * len(self.s_values), ), dtype=complex)
         for i in range(1, self.__num_quads+1):
@@ -230,7 +235,7 @@ class Packet:
         self.complex_s_values = complex_s_value
 
 
-    def __type_a_b_decoder(self, bit_string, component):
+    def __type_a_b_decoder(self, bit_string, component) -> tuple[str, int]:
         num_bits = 0
         sign_bits = 1
         m_code_bits = 9
@@ -245,28 +250,27 @@ class Packet:
         return bit_string, num_bits + offset
 
 
-    def __decode_type_a_b_data(self):
+    def __decode_type_a_b_data(self) -> None:
         bit_string = create_bit_string(self.__raw_user_data)
-        bit_string, self.num_ie_bits = self.__type_a_b_decoder(bit_string, 'IE')
-        bit_string, self.num_io_bits = self.__type_a_b_decoder(bit_string, 'IO')
-        bit_string, self.num_qe_bits = self.__type_a_b_decoder(bit_string, 'QE')
-        bit_string, self.num_qo_bits = self.__type_a_b_decoder(bit_string, 'QO')
-        self.remaining_user_data_bits = len(bit_string)
+        bit_string, self.__num_ie_bits = self.__type_a_b_decoder(bit_string, 'IE')
+        bit_string, self.__num_io_bits = self.__type_a_b_decoder(bit_string, 'IO')
+        bit_string, self.__num_qe_bits = self.__type_a_b_decoder(bit_string, 'QE')
+        bit_string, self.__num_qo_bits = self.__type_a_b_decoder(bit_string, 'QO')
         self.__type_a_b_s_value_reconstruction()
         self.__raw_user_data = None
         del self.__raw_user_data
 
 
-    def __decode_user_data_field(self):
-        self.ie_signs, self.ie_m_codes  = [], []
-        self.io_signs, self.io_m_codes  = [], []
-        self.qe_signs, self.qe_m_codes  = [], []
-        self.qo_signs, self.qo_m_codes  = [], []
+    def __decode_user_data_field(self) -> None:
+        self.__ie_signs, self.__ie_m_codes  = [], []
+        self.__io_signs, self.__io_m_codes  = [], []
+        self.__qe_signs, self.__qe_m_codes  = [], []
+        self.__qo_signs, self.__qo_m_codes  = [], []
         self.component_dict = {
-            'IE': (self.ie_signs, self.ie_m_codes),
-            'IO': (self.io_signs, self.io_m_codes),
-            'QE': (self.qe_signs, self.qe_m_codes),
-            'QO': (self.qo_signs, self.qo_m_codes)
+            'IE': (self.__ie_signs, self.__ie_m_codes),
+            'IO': (self.__io_signs, self.__io_m_codes),
+            'QE': (self.__qe_signs, self.__qe_m_codes),
+            'QO': (self.__qo_signs, self.__qo_m_codes)
         }
         try:
             if self.__data_format == 'A':
@@ -285,7 +289,7 @@ class Packet:
             print(f"Error encountered with data format, skipping user data decoding: {e}")
 
 
-    def __set_data_format(self):
+    def __set_data_format(self) -> None:
         if self.__baq_mode == 0:
             if self.__test_mode % 3 == 0:
                 self.__data_format = 'A'
@@ -299,7 +303,7 @@ class Packet:
             raise ValueError(f'No Data Format with BAQ Mode: {self.__baq_mode} and Test Mode: {self.__test_mode}')
 
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         # TODO: Cast to the correct types.
         return (
             f"Packet Type: {self.__data_format}\n" +
