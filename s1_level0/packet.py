@@ -3,6 +3,7 @@ import numpy as np
 from structs import (
     BRC_TO_HUFFMAN_START_BIT_LEN, 
     BRC_TO_HUFFMAN_CODING,
+    BRC_TO_HUFFMAN_CODING_SET,
     SECONDARY_HEADER_SIZE,
     WORD_SIZE,
     SIMPLE_RECONSTRUCTION_METHOD,
@@ -116,6 +117,7 @@ class Packet:
             m_code, bit_string, bit_len = huffman_decode(
                 bit_string,
                 BRC_TO_HUFFMAN_START_BIT_LEN[brc],
+                BRC_TO_HUFFMAN_CODING_SET[brc],
                 BRC_TO_HUFFMAN_CODING[brc]
             )
             signs.append(int(sign, 2))
@@ -129,13 +131,7 @@ class Packet:
         threshold_size = 8
         num_bits = 0
         total_bits = 0
-        comp_dict = {
-            'IE': (self.ie_signs, self.ie_m_codes),
-            'IO': (self.io_signs, self.io_m_codes),
-            'QE': (self.qe_signs, self.qe_m_codes),
-            'QO': (self.qo_signs, self.qo_m_codes)
-        }
-        comp_signs, comp_m_codes = comp_dict[component]
+        component_signs, component_m_codes = self.component_dict[component]
         for i in range(self.__num_baq_blocks):
             if component == 'IE':
                 brc, bit_string = read_and_pop(bit_string, brc_size)
@@ -153,8 +149,8 @@ class Packet:
                 self.brc[i],
                 last_block
             )
-            comp_signs.append(signs)
-            comp_m_codes.append(m_codes)
+            component_signs.append(signs)
+            component_m_codes.append(m_codes)
             brc_offset = brc_size if component == 'IE' else 0
             threshold_offset = threshold_size if component == 'QE' else 0
             total_bits += num_bits + brc_offset + threshold_offset
@@ -210,10 +206,6 @@ class Packet:
         #       arrays and only set the complex s_values in the object.
         self.brc        = []
         self.thresholds = []
-        self.ie_signs, self.ie_m_codes  = [], []
-        self.io_signs, self.io_m_codes  = [], []
-        self.qe_signs, self.qe_m_codes  = [], []
-        self.qo_signs, self.qo_m_codes  = [], []
         bit_string = create_bit_string(self.__raw_user_data)
         bit_string, self.num_ie_bits = self.__type_d_decoder(bit_string, 'IE')
         bit_string, self.num_io_bits = self.__type_d_decoder(bit_string, 'IO')
@@ -225,13 +217,68 @@ class Packet:
         del self.__raw_user_data
 
 
+    def __type_a_b_s_value_reconstruction(self):
+        self.s_values = []
+        num_s_codes = len(self.ie_signs)
+        construct_s_value = lambda sign, m_code: np.power(-1, sign) * m_code
+        for i in range(num_s_codes):
+            ie_s_value = construct_s_value(self.ie_signs[i], self.ie_m_codes[i])
+            io_s_value = construct_s_value(self.io_signs[i], self.io_m_codes[i])
+            qe_s_value = construct_s_value(self.qe_signs[i], self.qe_m_codes[i])
+            qo_s_value = construct_s_value(self.qo_signs[i], self.qo_m_codes[i])
+            self.s_values.append([ie_s_value, io_s_value, qe_s_value, qo_s_value])
+        complex_s_value = np.zeros((2 * len(self.s_values), ), dtype=complex)
+        for i in range(1, self.__num_quads+1):
+            ie, io, qe, qo = tuple(self.s_values[i-1])
+            complex_s_value[2*i-2] = ie + 1j*qe
+            complex_s_value[2*i-1] = io + 1j*qo
+        self.complex_s_values = complex_s_value
+
+
+    def __type_a_b_decoder(self, bit_string, component):
+        num_bits = 0
+        sign_bits = 1
+        m_code_bits = 9
+        component_signs, component_m_codes = self.component_dict[component]
+        for _ in range(self.__num_quads):
+            sign, bit_string = read_and_pop(bit_string, sign_bits)
+            m_code, bit_string = read_and_pop(bit_string, m_code_bits)
+            component_signs.append(int(sign, 2))
+            component_m_codes.append(int(m_code, 2))
+            num_bits += 10
+        bit_string, offset = self.__jump_to_next_word_boundary(bit_string, num_bits)
+        return bit_string, num_bits + offset
+
+
+    def __decode_type_a_b_data(self):
+        bit_string = create_bit_string(self.__raw_user_data)
+        bit_string, self.num_ie_bits = self.__type_a_b_decoder(bit_string, 'IE')
+        bit_string, self.num_io_bits = self.__type_a_b_decoder(bit_string, 'IO')
+        bit_string, self.num_qe_bits = self.__type_a_b_decoder(bit_string, 'QE')
+        bit_string, self.num_qo_bits = self.__type_a_b_decoder(bit_string, 'QO')
+        self.remaining_user_data_bits = len(bit_string)
+        self.__type_a_b_s_value_reconstruction()
+        self.__raw_user_data = None
+        del self.__raw_user_data
+
+
     def __decode_user_data_field(self):
-        # TODO: Implement type A, B, and C packets
+        # TODO: Implement type C packets
+        self.ie_signs, self.ie_m_codes  = [], []
+        self.io_signs, self.io_m_codes  = [], []
+        self.qe_signs, self.qe_m_codes  = [], []
+        self.qo_signs, self.qo_m_codes  = [], []
+        self.component_dict = {
+            'IE': (self.ie_signs, self.ie_m_codes),
+            'IO': (self.io_signs, self.io_m_codes),
+            'QE': (self.qe_signs, self.qe_m_codes),
+            'QO': (self.qo_signs, self.qo_m_codes)
+        }
         try:
             if self.__data_format == 'A':
-                raise NotImplementedError("Data Format A is not supported yet...")
+                self.__decode_type_a_b_data()
             elif self.__data_format == 'B':
-                raise NotImplementedError("Data Format B is not supported yet...")
+                self.__decode_type_a_b_data()
             elif self.__data_format == 'C':
                 raise NotImplementedError("Data Format C is not supported yet...")
             elif self.__data_format == 'D':
