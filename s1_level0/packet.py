@@ -23,8 +23,6 @@ from utils import (
 
 
 class Packet:
-    # TODO: Implement use of the annot.dat file to grab the locations of each packet
-    #       so that packet processing can be parallelized.
     def __init__(
         self,
         primary_header,
