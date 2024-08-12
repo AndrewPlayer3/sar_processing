@@ -5,6 +5,10 @@ Description: Some basic utility functions necessary for decoding Level-0 data.
              https://sentinels.copernicus.eu/documents/247904/2142675/Sentinel-1-SAR-Space-Packet-Protocol-Data-Unit.pdf
 """
 
+import time
+
+import numpy as np
+
 from structs import BRC_TO_HUFFMAN_START_BIT_LEN, BRC_TO_HUFFMAN_CODING, BRC_TO_HUFFMAN_CODING_SET
 
 
@@ -53,3 +57,24 @@ def find_packet_of_type(PacketGenerator, packet_type: str, num_packets: int = 10
                 print(f"Packet number {i} is a type {packet_type} packet.")
             break
     return packet, packet_index
+
+
+def time_packet_generation(PacketGenerator, num_packets, perf_log_interval, log: bool = True):
+    times = []
+    for i in range(num_packets):
+        start_time = time.time()
+        _ = next(PacketGenerator)
+        end_time = time.time()
+        runtime = end_time - start_time
+        times.append(runtime)
+        if log and i % perf_log_interval == 0:
+            print(f"Decoded Packet {i} of {num_packets} in {runtime}s.")
+    time_arr = np.asarray(times)
+    mean = time_arr.mean()
+    total = sum(times)
+    if log:
+        print("---")
+        print(f"Decoded {num_packets} in {total}s.")
+        print("___")
+        print(f"Mean Decoding Time: {mean}s.")
+    return total, mean
