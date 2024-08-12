@@ -20,7 +20,7 @@ def read_and_pop(bit_string: str, bit_length: int):
 
 
 def huffman_decode(bit_string, start_bit_len, bit_pattern_to_code):
-    bits = ''
+    bits = None
     bit_len = start_bit_len
     temp_bit_string = ''
     while bits not in bit_pattern_to_code:
