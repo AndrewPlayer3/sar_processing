@@ -67,16 +67,6 @@ class Packet:
         return self.__data_format
 
 
-    def bit_counts(self) -> list[int]:
-        """Number of bits consumed by the IE, IO, QE, and QO components, respectively."""
-        return self.__bit_counts
-
-
-    def num_component_bytes(self) -> float:
-        """The total number of bytes comsumbed by the components (IE, IO, QE, QO)."""
-        return sum(self.bit_counts()) / 8
-
-
     def get_tx_ramp_rate(self) -> np.float64:
         bits = self.__secondary_header['tx_ramp_rate']
         sign = -1 if bits[0] == '0' else 1
@@ -352,19 +342,20 @@ class Packet:
     def __decode_type_d_data(self) -> None:
         self.__brc        = []
         self.__thresholds = []
-        self.__bit_counts = [0, 0, 0, 0]
+        bit_counts = [0, 0, 0, 0]
         bit_string = create_bit_string(self.__raw_user_data)
-        bit_string, self.__bit_counts[0] = self.__type_d_decoder(bit_string, 'IE')
-        bit_string, self.__bit_counts[1] = self.__type_d_decoder(bit_string, 'IO')
-        bit_string, self.__bit_counts[2] = self.__type_d_decoder(bit_string, 'QE')
-        bit_string, self.__bit_counts[3] = self.__type_d_decoder(bit_string, 'QO')
+        bit_string, bit_counts[0] = self.__type_d_decoder(bit_string, 'IE')
+        bit_string, bit_counts[1] = self.__type_d_decoder(bit_string, 'IO')
+        bit_string, bit_counts[2] = self.__type_d_decoder(bit_string, 'QE')
+        bit_string, bit_counts[3] = self.__type_d_decoder(bit_string, 'QO')
         complex_s_values = self.__type_d_s_value_reconstruction()
+        num_bytes = sum(bit_counts) / 8
         self.__raw_user_data = None
         self.__delete_codes()
         del self.__brc
         del self.__thresholds
         del self.__raw_user_data
-        return complex_s_values
+        return complex_s_values, num_bytes
 
 
     def __type_a_b_s_value_reconstruction(self) -> None:
@@ -402,16 +393,17 @@ class Packet:
 
     def __decode_type_a_b_data(self) -> None:
         bit_string = create_bit_string(self.__raw_user_data)
-        self.__bit_counts = [0, 0, 0, 0]
-        bit_string, self.__bit_counts[0] = self.__type_a_b_decoder(bit_string, 'IE')
-        bit_string, self.__bit_counts[1] = self.__type_a_b_decoder(bit_string, 'IO')
-        bit_string, self.__bit_counts[2] = self.__type_a_b_decoder(bit_string, 'QE')
-        bit_string, self.__bit_counts[3] = self.__type_a_b_decoder(bit_string, 'QO')
+        bit_counts = [0, 0, 0, 0]
+        bit_string, bit_counts[0] = self.__type_a_b_decoder(bit_string, 'IE')
+        bit_string, bit_counts[1] = self.__type_a_b_decoder(bit_string, 'IO')
+        bit_string, bit_counts[2] = self.__type_a_b_decoder(bit_string, 'QE')
+        bit_string, bit_counts[3] = self.__type_a_b_decoder(bit_string, 'QO')
         complex_s_values = self.__type_a_b_s_value_reconstruction()
+        num_bytes = sum(bit_counts) / 8
         self.__raw_user_data = None
         self.__delete_codes()
         del self.__raw_user_data
-        return complex_s_values
+        return complex_s_values, num_bytes
 
 
     def __delete_codes(self):
