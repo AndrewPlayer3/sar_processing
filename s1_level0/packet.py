@@ -9,7 +9,9 @@ from structs import (
     NORMALIZED_RECONSTRUCTION_LEVELS,
     THIDX_TO_SF_ARRAY,
     BRC_TO_THIDX,
-    BRC_TO_M_CODE
+    BRC_TO_M_CODE,
+    ECC_CODE_TO_SENSOR_MODE,
+    F_REF
 )
 
 from utils import (
@@ -77,9 +79,17 @@ class Packet:
         return self.__secondary_header
 
 
+    def get_pulse_ramp_rate(self):
+        bits = self.__secondary_header['tx_pulse_ramp_rate']
+        sign = not int(bits[0])
+        txprr = int(bits[1:])
+        tx_pulse_ramp_rate = np.power(-1, sign) * int(txprr) * (np.power(F_REF ** 2) / 2097152)  # 2^21
+        return tx_pulse_ramp_rate
+
+
     def sensor_mode(self):
-        # TODO: Map ECC code to the operating mode as per the docs
-        raise NotImplementedError()
+        ecc_code = int(self.__secondary_header['ecc_number'], 2)
+        return ECC_CODE_TO_SENSOR_MODE[ecc_code]
 
 
     def __jump_to_next_word_boundary(self, bit_string, num_bits):
@@ -268,12 +278,13 @@ class Packet:
             f"Sync Marker: {int(self.__secondary_header['sync_marker'], 2)}\n" +
             f"Data Take ID: {int(self.__secondary_header['data_take_id'], 2)}\n" +
             f"ECC Code: {int(self.__secondary_header['ecc_number'], 2)}\n" +
+            f"Sensor Mode: {self.sensor_mode()}\n" + 
             f"Test Mode: {int(self.__secondary_header['test_mode'], 2)}\n" +
             f"RX Channel ID: {int(self.__secondary_header['rx_channel_id'], 2)}\n" +
             f"Instrument Configuration ID: {int(self.__secondary_header['instrument_configuration_id'], 2)}\n" +
             f"Sub-Commutative Word Index: {int(self.__secondary_header['sc_data_word_index'], 2)}\n" +
             f"Sub-Commutative Word: {self.__secondary_header['sc_data_word']}\n" +
-            f"Counter Service: {int(self.__secondary_header['counter_service'], 2)}\n" +
+            f"Space Packet Count: {int(self.__secondary_header['space_packet_count'], 2)}\n" +
             f"PRI Count: {int(self.__secondary_header['pri_count'], 2)}\n" +
             f"Error Flag: {int(self.__secondary_header['error_flag'], 2)}\n" +
             f"BAQ Mode: {int(self.__secondary_header['baq_mode'], 2)}\n" +
