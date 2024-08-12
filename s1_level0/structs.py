@@ -14,7 +14,8 @@ PRIMARY_HEADER_SIZE = 6
 SECONDARY_HEADER_SIZE = 62
 # Bits
 WORD_SIZE = 16
-
+# Hertz
+F_REF = 37.53472224
 
 # Table 2.4-1 from Page 13
 PRIMARY_HEADER = [
@@ -104,7 +105,7 @@ SECONDARY_HEADER_FIELDS = [
     'instrument_configuration_id',
     'sc_data_word_index',
     'sc_data_word',
-    'counter_service',
+    'space_packet_count',
     'pri_count',
     'error_flag',
     'na_2',
@@ -138,6 +139,64 @@ SECONDARY_HEADER_FIELDS = [
     'num_quadratures',
     'na_9',
 ]
+
+
+# TODO: Get types and enumerations
+# Tables 3.2-1 -> 3.2-19 from Pages 15 -> 54
+SECONDARY_HEADER_FIELD_TYPES = {
+    # 'coarse_time': int,
+    # 'fine_time': int,
+    # 'sync_marker': int,
+    # 'data_take_id': int,
+    # 'ecc_number': int,
+    # 'na_1': int,
+    'test_mode': {
+        '000': 'measurement_mode',
+        '001': 'n_a',
+        '011': 'n_a',
+        '100': 'contingency',
+        '101': 'contingency',
+        '110': 'test_mode_baq',
+        '111': 'test_mode_bypass',
+    },
+    # 'rx_channel_id': int,
+    # 'instrument_configuration_id': int,
+    # 'sc_data_word_index': int,
+    'sc_data_word': {},
+    # 'space_packet_count': int,
+    # 'pri_count': int,
+    # 'error_flag': int,
+    # 'na_2': int,
+    # 'baq_mode': int,
+    # 'baq_block_length': int,
+    # 'na_3': int,
+    # 'range_decimation': int
+    # 'rx_gain': int,
+    'tx_ramp_rate': {},
+    'pulse_start_frequency': {},
+    # 'pulse_length': int,
+    # 'na_4': int,
+    # 'rank': int,  # *** This and other params require dividing by f_ref.
+    # 'pri': int,   #
+    # 'swst': int,  #
+    # 'swl': int,   #
+    # 'ssb_flag': int,
+    'polarisation': {},
+    'temperature_compensation': {},
+    # 'na_5': int,
+    # 'elevation_beam_address': int,
+    # 'na_6': int,
+    # 'azimuth_beam_address': int,
+    'calibration_mode': {},
+    # 'na_7': int,
+    # 'tx_pulse_number': int,
+    'signal_type': {},
+    # 'na_8': int,
+    # 'swap': int,
+    # 'swath_number': int,
+    # 'num_quadratures': int,
+    # 'na_9': int,
+}
 
 
 # Tables 3.2-5 -> 3.2-10 from Pages 23 -> 27
@@ -357,6 +416,61 @@ BRC_TO_HUFFMAN_CODING = [
     },
 ]
 
+BRC_INT_TO_HUFFMAN_CODING = [
+    {
+        0: 0,
+        2: 1,
+        6: 2,
+        7: 3,
+    }, 
+    {
+        0:  0,
+        2:  1,
+        6:  2,
+        14: 3,
+        15: 4,
+    }, 
+    {
+        0:  0,
+        2:  1,
+        6:  2,
+        14: 3,
+        30: 4,
+        62: 5,
+        63: 6,
+    }, 
+    {
+        0:   0,
+        1:   1,
+        2:   2,
+        6:   3,
+        14:  4,
+        30:  5,
+        62:  6,
+        126: 7,
+        254: 8,
+        255: 9,
+    },
+    {
+        0:    0,
+        2:    1,
+        3:    2,
+        4:    3,
+        5:    4,
+        12:   5,
+        13:   6,
+        14:   7,
+        30:   8,
+        62:   9,
+        252: 10,
+        253: 11,
+        508: 12,
+        509: 13,
+        510: 14,
+        511: 15,
+    },
+]
+
 
 # Table 5.2-1 from Page 78
 BRC_TO_THIDX  = [3, 3, 5, 6,  8]
@@ -413,4 +527,57 @@ THIDX_TO_SF_ARRAY = [
     193.33, 194.58, 195.83, 197.09, 198.34, 199.59, 200.85, 202.10, 203.35, 204.61, 205.86, 207.11, 208.37, 209.62, 210.87, 212.13, 213.38,
     214.63, 215.89, 217.14, 218.39, 219.65, 220.90, 222.15, 223.41, 224.66, 225.91, 227.17, 228.42, 229.67, 230.93, 232.18, 233.43, 234.69,
     235.94, 237.19, 238.45, 239.70, 240.95, 242.21, 243.46, 244.71, 245.97, 247.22, 248.47, 249.73, 250.98, 252.23, 253.49, 254.74, 255.99, 255.99
+]
+
+
+# Table 3.2-4 from Page 19
+ECC_CODE_TO_SENSOR_MODE = [
+    'contingency',
+    'stripmap_1',
+    'stripmap_2',
+    'stripmap_3',
+    'stripmap_4',
+    'stripmap_5n',
+    'stripmap_6',
+    'contingency',
+    'interferomatric_wide_swath',
+    'wave_mode',
+    'stripmap-5s',
+    'stripmap_1_w_cal',
+    'stripmap_2_w_cal',
+    'stripmap_3_w_cal',
+    'stripmap_4_w_cal',
+    'rf_characterization_mode',
+    'test_mode',
+    'elevation_notch_s3',
+    'azimuth_notch_s1',
+    'azimuth_notch_s2',
+    'azimuth_notch_s3',
+    'azimuth_notch_s4',
+    'azimuth_notch_s5n',
+    'azimuth_notch_s5s',
+    'azimuth_notch_s6',
+    'stripmap_5n_wo_cal',
+    'stripmap_5s_wo_cal',
+    'stripmap_6_wo_cal',
+    'contingency',
+    'contingency',
+    'contingency',
+    'elevation_notch_s3_wo_cal',
+    'extra_wide_swath',
+    'azimuth_notch_s1_wo_cal',
+    'azimuth_notch_s2_wo_cal',
+    'azimuth_notch_s3_wo_cal',
+    'contingency',
+    'noise_characterization_s1',
+    'noise_characterization_s2',
+    'noise_characterization_s3',
+    'noise_characterization_s4',
+    'noise_characterization_s5n',
+    'noise_characterization_s5s',
+    'noise_characterization_s6',
+    'noise_characterization_ew',
+    'noise_characterization_iw',
+    'noise_characterization_wave',
+    'contingency'
 ]
