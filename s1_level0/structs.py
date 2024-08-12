@@ -5,6 +5,8 @@ Description: Some data structs/tables containing information necessary for decod
              went through the document on the fly.
              They are all from "SAR Space Packet Protocol Data Unit", which can be found at:
              https://sentinels.copernicus.eu/documents/247904/2142675/Sentinel-1-SAR-Space-Packet-Protocol-Data-Unit.pdf
+             For additional information on Level-0 product decoding, see:
+             https://sentinel.esa.int/documents/247904/0/Sentinel-1-Level-0-Data-Decoding-Package.pdf/a8742c59-4914-40c4-8309-c77515649f17
 """
 
 
@@ -415,6 +417,61 @@ BRC_TO_HUFFMAN_CODING = [
         '111111111':  15,
     },
 ]
+BRC_TO_HUFFMAN_CODING_SET = [
+    {
+        '0',
+        '10',
+        '110',
+        '111',
+    }, 
+    {
+        '0',
+        '10',
+        '110',
+        '1110',
+        '1111',
+    }, 
+    {
+        '0',
+        '10',
+        '110',
+        '1110',
+        '11110',
+        '111110',
+        '111111',
+    }, 
+    {
+        '00',
+        '01',
+        '10',
+        '110',
+        '1110',
+        '11110',
+        '111110',
+        '1111110',
+        '11111110',
+        '11111111',
+    },
+    {
+        '00',
+        '010',
+        '011',
+        '100',
+        '101',
+        '1100',
+        '1101',
+        '1110',
+        '11110',
+        '111110',
+        '11111100',
+        '11111101',
+        '111111100',
+        '111111101',
+        '111111110',
+        '111111111',
+    },
+]
+
 
 BRC_INT_TO_HUFFMAN_CODING = [
     {

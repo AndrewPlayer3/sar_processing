@@ -5,7 +5,7 @@ Description: Some basic utility functions necessary for decoding Level-0 data.
              https://sentinels.copernicus.eu/documents/247904/2142675/Sentinel-1-SAR-Space-Packet-Protocol-Data-Unit.pdf
 """
 
-from structs import BRC_TO_HUFFMAN_START_BIT_LEN, BRC_TO_HUFFMAN_CODING
+from structs import BRC_TO_HUFFMAN_START_BIT_LEN, BRC_TO_HUFFMAN_CODING, BRC_TO_HUFFMAN_CODING_SET
 
 
 def create_bit_string(bytes_string: str):
@@ -19,13 +19,13 @@ def read_and_pop(bit_string: str, bit_length: int):
     return bit_string[0:bit_length], bit_string[bit_length:]
 
 
-def huffman_decode(bit_string, start_bit_len, bit_pattern_to_code):
+def huffman_decode(bit_string, start_bit_len, bit_pattern_set, bit_pattern_to_code):
     bits = None
     bit_len = start_bit_len
     temp_bit_string = ''
-    while bits not in bit_pattern_to_code:
+    while bits not in bit_pattern_set:
         bits, temp_bit_string = read_and_pop(bit_string, bit_len)
-        if bits not in bit_pattern_to_code:
+        if bits not in bit_pattern_set:
             bit_len += 1
         if bit_len > 10:
             raise ValueError(f"Huffman pattern matching exceeded max length. Bits: {bits}, Pattern: {bit_pattern_to_code}")
@@ -36,5 +36,20 @@ def huffman_decode_for_brc(bit_string: str, brc: int):
     return huffman_decode(
         bit_string,
         BRC_TO_HUFFMAN_START_BIT_LEN[brc],
+        BRC_TO_HUFFMAN_CODING_SET[brc],
         BRC_TO_HUFFMAN_CODING[brc]
     )
+
+
+def find_packet_of_type(PacketGenerator, packet_type: str, num_packets: int = 1000, log: bool = True, log_interval: int = 10):
+    packet_index = 0
+    for i in range(num_packets):
+        packet = next(PacketGenerator)
+        if i != 0 and log and i % log_interval == 0:
+            print(f"Decoded Packet {i} of {num_packets}")
+        if packet.data_format() == packet_type:
+            packet_index = i
+            if log:
+                print(f"Packet number {i} is a type {packet_type} packet.")
+            break
+    return packet, packet_index
