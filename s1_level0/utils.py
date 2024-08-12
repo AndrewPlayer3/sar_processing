@@ -45,10 +45,10 @@ def huffman_decode_for_brc(bit_string: str, brc: int):
     )
 
 
-def find_packet_of_type(PacketGenerator, packet_type: str, num_packets: int = 1000, log: bool = True, log_interval: int = 10):
+def find_packet_of_type(packet_generator, packet_type: str, num_packets: int = 1000, log: bool = True, log_interval: int = 10):
     packet_index = 0
     for i in range(num_packets):
-        packet = next(PacketGenerator)
+        packet = next(packet_generator)
         if i != 0 and log and i % log_interval == 0:
             print(f"Decoded Packet {i} of {num_packets}")
         if packet.data_format() == packet_type:
@@ -59,15 +59,17 @@ def find_packet_of_type(PacketGenerator, packet_type: str, num_packets: int = 10
     return packet, packet_index
 
 
-def time_packet_generation(PacketGenerator, num_packets, perf_log_interval, log: bool = True):
+def time_packet_generation(packet_generator, num_packets, do_complex_decode: bool = False, log: bool = True, log_interval: int = 1):
     times = []
     for i in range(num_packets):
         start_time = time.time()
-        _ = next(PacketGenerator)
+        packet = next(packet_generator)
+        if do_complex_decode:
+            packet.get_complex_samples()
         end_time = time.time()
         runtime = end_time - start_time
         times.append(runtime)
-        if log and i % perf_log_interval == 0:
+        if log and i % log_interval == 0:
             print(f"Decoded Packet {i} of {num_packets} in {runtime}s.")
     time_arr = np.asarray(times)
     mean = time_arr.mean()

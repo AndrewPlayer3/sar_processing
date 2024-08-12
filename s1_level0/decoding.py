@@ -58,7 +58,7 @@ def packet_generator_from_file(filename):
         return packet_generator(data)
 
 
-def build_data_word_dict(PacketGenerator, num_packets, log: bool = True, log_interval: int = 10):
+def build_data_word_dict(packet_generator, num_packets: int = 100, log: bool = True, log_interval: int = 10):
     data_word_dicts = []
     sub_comm_dict = SUB_COMM_KEY_VAL.copy()
     
@@ -69,7 +69,7 @@ def build_data_word_dict(PacketGenerator, num_packets, log: bool = True, log_int
         if log and i % log_interval == 0 and i > 0:
             print(f"Decoded {i} of {num_packets}.")
 
-        packet = next(PacketGenerator)
+        packet = next(packet_generator)
         secondary_header = packet.get_secondary_header()
 
         sc_data_word_index = secondary_header['sc_data_word_index']
