@@ -226,6 +226,7 @@ class Packet:
 
 
     def __decode_user_data_field(self):
+        # TODO: Implement type A, B, and C packets
         try:
             if self.__data_format == 'A':
                 raise NotImplementedError("Data Format A is not supported yet...")
