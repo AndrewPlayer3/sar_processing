@@ -140,12 +140,12 @@ def annotation_decoder(raw_data):
             break
         bit_string = create_bit_string(data)
         record = {
-            'days': int(bit_string[0:16], 2),
-            'milliseconds': int(bit_string[16:48], 2),
-            'microseconds': int(bit_string[48:64], 2),
-            'days': int(bit_string[64:80], 2),
-            'milliseconds': int(bit_string[80:112], 2),
-            'microseconds': int(bit_string[112:128], 2),
+            'days_ul': int(bit_string[0:16], 2),
+            'milliseconds_ul': int(bit_string[16:48], 2),
+            'microseconds_ul': int(bit_string[48:64], 2),
+            'days_dl': int(bit_string[64:80], 2),
+            'milliseconds_dl': int(bit_string[80:112], 2),
+            'microseconds_dl': int(bit_string[112:128], 2),
             'packet_length': int(bit_string[128:144], 2),
             'num_transfer_frames': int(bit_string[144:160], 2),
             'error_flag': int(bit_string[160:168], 2),
