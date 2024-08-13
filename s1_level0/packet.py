@@ -354,7 +354,6 @@ class Packet:
         self.__delete_codes()
         del self.__brc
         del self.__thresholds
-        del self.__raw_user_data
         return complex_s_values, num_bytes
 
 
