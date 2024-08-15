@@ -176,18 +176,31 @@ int main(int argc, char* argv[])
 
     cout << "Decoded single packet in " << runtime.count() << "s." << endl;
 
-    int num_packets = 100;
+    int num_packets = 60000;
+    int log_interval = 1000;
     double total_runtime = 0.0;
     for (int i = 0; i < num_packets; i++)
     {
             auto start = chrono::high_resolution_clock::now();
             L0Packet packet = get_next_packet(data);          
-            vector<complex<double>> complex_samples = packet.get_complex_samples();
+            try
+            {
+                vector<complex<double>> complex_samples = packet.get_complex_samples();
+            }
+            catch(runtime_error)
+            {
+                continue;
+            }
+
             auto end   = chrono::high_resolution_clock::now();
 
             chrono::duration<double> difference = end - start;
             total_runtime += difference.count();
 
+            if (i % log_interval == 0 && i != 0)
+            {
+                cout << "Decoded " << i << " packets in " << total_runtime << "s." << endl;
+            }
     }
     cout << "Decoded " << num_packets << " packets in " << total_runtime << "s." << endl;
 
