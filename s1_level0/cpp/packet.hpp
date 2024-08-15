@@ -95,7 +95,7 @@ private:
     {
         int offset = bit_index % WORD_SIZE;
         if (offset == 0) return 0;
-        else return WORD_SIZE - offset;
+        else return bit_index + (WORD_SIZE - offset);
     }
 
 
@@ -111,8 +111,7 @@ private:
         int threshold_index,
         int sign,
         int m_code
-    )
-    {
+    ) {
         if (threshold_index <= BRC_TO_THIDX[brc])
         {
             int m_code_comparison_flag = BRC_TO_M_CODE[brc];
@@ -139,24 +138,18 @@ private:
         QUAD& IO,
         QUAD& QE,
         QUAD& QO
-    ){
+    ) {
         vector<vector<double>> s_values;
-        cout << "DECODING COMPLEX BLOCKS AND SCODES" << endl;
-        for (int block_index; block_index < _num_baq_blocks; block_index++)
+
+        for (int block_index = 0; block_index < _num_baq_blocks; block_index++)
         {
-
-            cout << "DECODING COMPLEX BLOCK " << block_index << endl;
-
             bool is_last_block   = (block_index == _num_baq_blocks - 1);
             int  block_length    = is_last_block ? _num_quads - (128 * (_num_baq_blocks - 1)) : 128;
             int  brc             = _brc[block_index];
             int  threshold_index = _thresholds[block_index];
 
-            for (int s_code_index; s_code_index < block_length; s_code_index++)
+            for (int s_code_index = 0; s_code_index < block_length; s_code_index++)
             {
-
-                cout << "DECODING COMPLEX SVALUE " << s_code_index << endl;
-
                 double ie_s_value = _get_type_d_s_value(
                     brc,
                     threshold_index,
@@ -184,15 +177,12 @@ private:
                 s_values.push_back(vector<double>({ie_s_value, io_s_value, qe_s_value, qo_s_value}));
             }
         }
-        // complex<double> complex_samples[2 * _num_quads];
-
         vector<complex<double>> complex_samples;
 
         for (int i = 1; i <= _num_quads; i++)
         {
             vector<double> components = s_values[i-1];
-            // complex_samples[(2*i)-2] = complex<double>(components[0], components[2]);
-            // complex_samples[(2*i)-1] = complex<double>(components[1], components[3]);
+
             complex_samples.push_back(complex<double>(components[0], components[2]));
             complex_samples.push_back(complex<double>(components[1], components[3]));
         }
@@ -225,7 +215,7 @@ private:
     }
 
 
-    int _set_quad(QUAD& component)
+    int _set_quad(QUAD& component, int bit_index)
     {   
         u_int16_t brc;
         u_int8_t  threshold;
@@ -234,9 +224,7 @@ private:
         int threshold_bits = 8;
 
         int total_bits_read    = 0;
-        int bits_read_for_code = 0;
-
-        int bit_index = 0;        
+        int bits_read_for_code = 0;       
 
         for (int i = 0; i < _num_baq_blocks; i++)
         {
@@ -286,40 +274,21 @@ private:
         QUAD QO = QUAD("QO");
 
         int bit_counts[4];
+        int bit_index = 0;
 
-        cout << "DECODING IE" << endl;
-        bit_counts[0] = _set_quad(IE);
-        cout << "DECODING IO" << endl;
-        bit_counts[1] = _set_quad(IO);
-        cout << "DECODING QE" << endl;
-        bit_counts[2] = _set_quad(QE);
-        cout << "DECODING QO" << endl;
-        bit_counts[3] = _set_quad(QO);
+        bit_index = _set_quad(IE, bit_index);
+        bit_index = _set_quad(IO, bit_index);
+        bit_index = _set_quad(QE, bit_index);
+        bit_index = _set_quad(QO, bit_index);
 
-        // for (u_int16_t m_code : IE.m_codes[0])
-        // {
-        //     cout << int(m_code) << endl;
-        // }
+        cout << bit_index << endl;
 
-        cout << "DECODING COMPLEX SAMPLES" << endl;
         vector<complex<double>> complex_samples = _get_type_d_complex_samples(
             IE,
             IO,
             QE,
             QO
         );
-
-        // vector<unsigned long> complex_values = 
-        // {
-        //     IE.signs.size(),
-        //     IE.m_codes.size(),
-        //     IO.signs.size(),
-        //     IO.m_codes.size(),
-        //     QE.signs.size(),
-        //     QE.m_codes.size(),
-        //     QO.signs.size(),
-        //     QO.m_codes.size()
-        // };
 
         return complex_samples;
     }
@@ -347,7 +316,7 @@ public:
         unordered_map<string, int> primary_header,
         unordered_map<string, int> secondary_header,
         vector<u_int8_t> raw_user_data
-    ){
+    ) {
         _primary_header   = primary_header;
         _secondary_header = secondary_header;
         _raw_user_data    = raw_user_data;
