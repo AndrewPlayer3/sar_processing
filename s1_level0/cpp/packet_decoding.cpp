@@ -140,34 +140,40 @@ double time_packet_generation(ifstream& data, const int& num_packets, const bool
     double total_runtime = 0.0;
     for (int i = 0; i < num_packets; i++)
     {
-        auto start = chrono::high_resolution_clock::now();
-        L0Packet packet = decode_next_packet(data);
         try
         {
+            auto start = chrono::high_resolution_clock::now();
+
+            L0Packet packet = decode_next_packet(data);
+            
             vector<complex<double>> complex_samples = packet.get_complex_samples();
+
+            auto end   = chrono::high_resolution_clock::now();
+
+            chrono::duration<double> difference = end - start;
+            total_runtime += difference.count();
+
+            if (log && i % log_interval == 0 && i != 0)
+            {
+                cout << "Decoded " << i << " packets in " << total_runtime << "s." << endl;
+            }
+
+            if (data.eof())
+            {
+                if (log) cout << "EOF reached after decoding " << i << " packets." << endl;
+                break;
+            }
         }
         catch(runtime_error)
         {
             continue;
         }
-
-        auto end   = chrono::high_resolution_clock::now();
-
-        chrono::duration<double> difference = end - start;
-        total_runtime += difference.count();
-
-        if (log && i % log_interval == 0 && i != 0)
+        catch(length_error)
         {
-            cout << "Decoded " << i << " packets in " << total_runtime << "s." << endl;
-        }
-
-        if (data.eof())
-        {
-            if (log) cout << "EOF reached after decoding " << i << " packets." << endl;
             break;
         }
     }
     if (log) cout << "Decoded " << num_packets << " packets in " << total_runtime << "s." << endl;
-    
+
     return total_runtime;
 }
