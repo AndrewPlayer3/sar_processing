@@ -1,14 +1,6 @@
 #pragma once
 
-#include <fstream>
-
 #include "packet.hpp"
-
-u_int16_t huffman_decode(const vector<u_int8_t>& data, const int& brc, int& bit_index);
-
-vector<u_int8_t> read_bytes(ifstream& data, const int& num_bytes);
-
-u_int32_t read_n_bits(const std::vector<u_int8_t>& data, const int& start_bit, const int& n);
 
 unordered_map<string, int> get_header_dict(
     const vector<u_int8_t>& bytes,
@@ -16,5 +8,10 @@ unordered_map<string, int> get_header_dict(
     const vector<string>&   field_names
 );
 
-L0Packet get_next_packet(ifstream& data);
+L0Packet decode_next_packet(ifstream& data);
 
+vector<unordered_map<string, int>> annotation_decoder(ifstream& data);
+
+vector<unordered_map<string, int>> index_decoder(ifstream& data);
+
+double time_packet_generation(ifstream& data, const int& num_packets, const bool& log, const int& log_interval);

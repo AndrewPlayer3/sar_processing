@@ -2,9 +2,11 @@
 
 #include <iostream>
 #include <unordered_map>
+#include <unordered_set>
 #include <complex>
 
-#include "structs.hpp"
+#include "decoding_utils.hpp"
+
 
 using namespace std;
 
