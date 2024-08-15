@@ -48,15 +48,7 @@ int main(int argc, char* argv[])
     cout << "Number of Annotation Records: " << annotation_records.size() << endl;
     cout << "" << endl;    
 
-    auto start = chrono::high_resolution_clock::now();
-    vector<complex<double>> complex_samples = packet.get_complex_samples();
-    auto end   = chrono::high_resolution_clock::now();
-
-    chrono::duration<double> runtime = end - start;
-
-    cout << "Decoded single packet in " << runtime.count() << "s.\n" << endl;
-
-    double total_runtime = time_packet_generation(data, 60000, true, 1000); 
+    double total_runtime = time_packet_generation(data, annotation_records.size(), true, 1000); 
 
     // g++ -std=c++20 -O3 main.cpp -o main
     // Decoded single packet in 0.0277048s.
