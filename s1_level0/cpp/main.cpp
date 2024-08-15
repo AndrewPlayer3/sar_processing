@@ -34,7 +34,7 @@ u_int16_t huffman_decode(vector<u_int8_t>& data, int brc, int& bit_index)
 vector<u_int8_t> read_bytes(
     ifstream& data,
     int num_bytes
-){
+) {
     vector<u_int8_t> buffer(num_bytes);
 
     data.read(reinterpret_cast<char*>(buffer.data()), num_bytes);
@@ -47,7 +47,7 @@ u_int32_t read_n_bits(
     const std::vector<u_int8_t>& data,
     int start_bit, 
     int n
-){
+) {
     if (n < 1 || n > 32) 
     {
         throw invalid_argument("Invalid number of bits to read. Must be between 1 and 32.");
@@ -92,7 +92,7 @@ unordered_map<string, int> get_header_dict(
     vector<u_int8_t>       bytes,
     const vector<int>      bit_lengths,
     const vector<string>   field_names
-){
+) {
     int num_fields = bit_lengths.size();
     int bit_index = 0;
 
@@ -115,7 +115,7 @@ unordered_map<string, int> get_header_dict(
 
 L0Packet get_next_packet(
     ifstream& data
-){
+) {
     vector<u_int8_t> primary_bytes = read_bytes(data, 6);
     unordered_map<string, int> primary_header = get_header_dict(
         primary_bytes,
@@ -160,24 +160,20 @@ int main(int argc, char* argv[])
 
     L0Packet packet = get_next_packet(data);
 
-    // cout << "" << endl;
-    // packet.print_primary_header();
-    // cout << "" << endl;
-    // packet.print_secondary_header();
-    // cout << "" << endl;
-    // cout << "Number of Quads: " << packet.get_num_quads() << endl;
-    // cout << "Test Mode: " << packet.get_test_mode() << endl;
-    // cout << "BAQ Mode: " << packet.get_baq_mode() << endl;
-    // cout << "Number of BAQ Blocks: " << packet.get_num_baq_blocks() << endl;
-    // cout << "User Data Length: " << packet.get_user_data_length() << endl;
-    // cout << "Data Format: " << packet.get_data_format() << endl;
+    cout << "" << endl;
+    packet.print_primary_header();
+    cout << "" << endl;
+    packet.print_secondary_header();
+    cout << "" << endl;
 
     vector<complex<double>> complex_samples = packet.get_complex_samples();
 
-    // for (int sample : complex_samples)
-    // {
-    //     cout << sample << endl;
-    // }
+    // Values match the python values.
+    int min_index = (2*packet.get_num_quads()) - 10;
+    for (int i = 0; i < (2*packet.get_num_quads()); i++)
+    {
+        if (i > min_index) cout << complex_samples[i] << endl;
+    }
 
     return 0;
 }
