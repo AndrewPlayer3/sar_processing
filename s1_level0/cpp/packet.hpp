@@ -54,11 +54,18 @@ private:
     int _baq_mode;
     int _num_baq_blocks;
     int _user_data_length;
+    
+    int _bit_index;
 
     char _data_format;
 
     vector<int> _brc;
     vector<int> _thresholds;
+
+    vector<complex<double>> _complex_samples;
+
+    bool _complex_samples_set_flag = false;
+
 
     void _set_data_format() 
     {
@@ -281,7 +288,7 @@ private:
         bit_index = _set_quad(QE, bit_index);
         bit_index = _set_quad(QO, bit_index);
 
-        cout << bit_index << endl;
+        // cout << bit_index << endl;
 
         vector<complex<double>> complex_samples = _get_type_d_complex_samples(
             IE,
@@ -311,6 +318,16 @@ private:
     }
 
 
+    void _set_complex_samples()
+    {
+        _complex_samples = _decode();
+        _complex_samples_set_flag = true;
+
+        // swapping _raw_user_data with a blank vector to free memory
+        vector<u_int8_t>().swap(_raw_user_data);
+    }
+
+
 public:
     L0Packet(
         unordered_map<string, int> primary_header,
@@ -326,6 +343,8 @@ public:
         _baq_mode         = secondary_header["baq_mode"];
         _user_data_length = primary_header["packet_data_length"] + 1 - SECONDARY_HEADER_SIZE;
         _num_baq_blocks   = ceil((2.0 * double(_num_quads)) / 256.0);
+
+        _complex_samples_set_flag = false;
 
         if (_user_data_length != _raw_user_data.size()) 
         {
@@ -346,7 +365,11 @@ public:
 
     vector<complex<double>> get_complex_samples()
     {
-        return _decode();
+        if (!_complex_samples_set_flag)
+        {
+            _set_complex_samples();
+        }
+        return _complex_samples;
     }
 
 

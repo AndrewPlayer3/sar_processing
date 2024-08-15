@@ -1,3 +1,5 @@
+#include <chrono>
+
 #include "packet.hpp"
 
 using namespace std;
@@ -166,14 +168,35 @@ int main(int argc, char* argv[])
     packet.print_secondary_header();
     cout << "" << endl;
 
+    auto start = chrono::high_resolution_clock::now();
     vector<complex<double>> complex_samples = packet.get_complex_samples();
+    auto end   = chrono::high_resolution_clock::now();
 
-    // Values match the python values.
-    int min_index = (2*packet.get_num_quads()) - 10;
-    for (int i = 0; i < (2*packet.get_num_quads()); i++)
+    chrono::duration<double> runtime = end - start;
+
+    cout << "Decoded single packet in " << runtime.count() << "s." << endl;
+
+    int num_packets = 100;
+    double total_runtime = 0.0;
+    for (int i = 0; i < num_packets; i++)
     {
-        if (i > min_index) cout << complex_samples[i] << endl;
+            auto start = chrono::high_resolution_clock::now();
+            L0Packet packet = get_next_packet(data);          
+            vector<complex<double>> complex_samples = packet.get_complex_samples();
+            auto end   = chrono::high_resolution_clock::now();
+
+            chrono::duration<double> difference = end - start;
+            total_runtime += difference.count();
+
     }
+    cout << "Decoded " << num_packets << " packets in " << total_runtime << "s." << endl;
+
+    // g++ -std=c++20 -O3 main.cpp -o main
+    // Decoded single packet in 0.0277048s.
+    // Decoded 100 packets in 1.34044s.
+    // For Python, it was:
+    // Decoded single packet in 0.5140669345855713s.
+    // Decoded 100 packets in 50.56020474433899s.
 
     return 0;
 }
