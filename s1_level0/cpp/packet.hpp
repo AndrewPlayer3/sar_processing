@@ -46,36 +46,38 @@ private:
     int _baq_mode;
     int _num_baq_blocks;
     int _user_data_length;
-    
     int _bit_index;
 
     char _data_format;
 
-    vector<int> _brc;
-    vector<int> _thresholds;
-
-    vector<complex<double>> _complex_samples;
-
     bool _complex_samples_set_flag = false;
 
-    void _set_data_format();
+    vector<int> _brc;
+    vector<int> _thresholds;
+    vector<complex<double>> _complex_samples;
 
     int _get_next_word_boundary(const int& bit_index);
-    
-    double _get_type_d_s_value(const int& brc, const int& threshold_index, const int& sign, const int& m_code);
-    
-    H_CODE _get_h_code(const u_int16_t& brc, int& bit_index, const bool& is_last_block);
+
+    double _get_type_d_s_value(
+        const int& brc,
+        const int& threshold_index,
+        const int& sign,
+        const int& m_code
+    );
+
+    H_CODE _get_h_code(
+        const u_int16_t& brc,
+        int& bit_index,
+        const bool& is_last_block
+    );
 
     vector<complex<double>> _get_type_d_complex_samples(QUAD& IE, QUAD& IO, QUAD& QE, QUAD& QO);
-    
     vector<complex<double>> _decode_types_a_and_b();
-    
     vector<complex<double>> _decode_type_d();
-    
     vector<complex<double>> _decode();
 
     int _set_quad(QUAD& component, int& bit_index);
-    
+    void _set_data_format();
     void _set_complex_samples();
 
 
@@ -105,16 +107,33 @@ public:
     }
 
     int  get_num_quads() {return _num_quads;}
-    int  get_test_mode() {return _test_mode;}
-    int  get_baq_mode () {return _baq_mode;}
     int  get_num_baq_blocks  () {return _num_baq_blocks;}
     int  get_user_data_length() {return _user_data_length;}
     char get_data_format() {return _data_format;}
 
+    int get_baq_block_length();
 
-    vector<complex<double>> get_complex_samples();
+    double get_pulse_length();
+    double get_tx_ramp_rate();
+    double get_start_frequency();
+    double get_pri();
+    double get_swl();
+    double get_swst();
+    double get_rx_gain();
+
+    char get_rx_polarization();
+    char get_tx_polarization();
+
+    string get_baq_mode();
+    string get_test_mode();
+    string get_sensor_mode();
+    string get_signal_type();
+    string get_error_status();
 
     void print_primary_header();
-
     void print_secondary_header();
+    void print_modes();
+    void print_pulse_info();
+
+    vector<complex<double>> get_complex_samples();
 };
