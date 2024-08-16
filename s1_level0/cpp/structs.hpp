@@ -145,7 +145,7 @@ const vector<string> SECONDARY_HEADER_FIELDS = {
 const vector<int> BRC_TO_HUFFMAN_START_BIT_LEN = {1, 1, 1, 2, 2};
 
 // Figures 4-7 -> 4-11 from Pages 71 -> 73
-const vector<unordered_map<u_int16_t, u_int8_t>> BRC_TO_HUFFMAN_CODING = {
+const vector<unordered_map<u_int16_t, u_int8_t>> HUFFMAN_CODINGS = {
     {
         {0, 0},
         {2, 1},
@@ -202,7 +202,7 @@ const vector<unordered_map<u_int16_t, u_int8_t>> BRC_TO_HUFFMAN_CODING = {
 
 
 // Figures 4-7 -> 4-11 from Pages 71 -> 73
-const vector<vector<unordered_map<u_int16_t, u_int8_t>>> HUFFMAN_CODING = {
+const vector<vector<unordered_map<u_int16_t, u_int8_t>>> HUFFMAN_CODINGS_WITH_LENGTH = {
     {
         {{0, 0}},
         {{2, 1}},
