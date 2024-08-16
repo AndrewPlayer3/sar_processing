@@ -5,10 +5,10 @@ using namespace std;
 
 unordered_map<string, int> get_header_dict(
     const vector<u_int8_t>&  bytes,
-    const vector<int>&       bit_lengths,
+    const u_int8_t*          bit_lengths,
     const vector<string>&    field_names
 ) {
-    int num_fields = bit_lengths.size();
+    int num_fields = field_names.size();
     int bit_index = 0;
 
     unordered_map<string, int> header;
