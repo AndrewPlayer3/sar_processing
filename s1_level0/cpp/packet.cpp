@@ -304,31 +304,31 @@ vector<complex<double>> L0Packet::_get_type_d_complex_samples(
 
         for (int s_code_index = 0; s_code_index < block_length; s_code_index++)
         {
-            double ie_s_value = _get_type_d_s_value(
+            double ie = _get_type_d_s_value(
                 brc,
                 threshold_index,
                 IE.signs[block_index][s_code_index],
                 IE.m_codes[block_index][s_code_index]
             );
-            double io_s_value = _get_type_d_s_value(
+            double io = _get_type_d_s_value(
                 brc,
                 threshold_index,
                 IO.signs[block_index][s_code_index],
                 IO.m_codes[block_index][s_code_index]
             );
-            double qe_s_value = _get_type_d_s_value(
+            double qe = _get_type_d_s_value(
                 brc,
                 threshold_index,
                 QE.signs[block_index][s_code_index],
                 QE.m_codes[block_index][s_code_index]
             );
-            double qo_s_value = _get_type_d_s_value(
+            double qo = _get_type_d_s_value(
                 brc,
                 threshold_index,
                 QO.signs[block_index][s_code_index],
                 QO.m_codes[block_index][s_code_index]
             );
-            s_values.push_back(vector<double>({ie_s_value, io_s_value, qe_s_value, qo_s_value}));
+            s_values.push_back(vector<double>({ie, io, qe, qo}));
         }
     }
     vector<complex<double>> complex_samples;
