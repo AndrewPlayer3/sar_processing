@@ -10,6 +10,10 @@ unordered_map<string, int> get_header_dict(
 
 L0Packet decode_next_packet(ifstream& data);
 
+vector<L0Packet> get_all_packets(ifstream& data, const bool& log, const int& log_interval);
+
+vector<L0Packet> get_n_packets(ifstream& data, const int& n, const bool& log, const int& log_interval);
+
 vector<unordered_map<string, int>> annotation_decoder(ifstream& data);
 
 vector<unordered_map<string, int>> index_decoder(ifstream& data);
