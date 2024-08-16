@@ -14,7 +14,7 @@ const u_int8_t WORD_SIZE             = 16;
 
 
 // Table 2.4-1 from Page 13
-const u_int8_t PRIMARY_HEADER[8] = {
+const vector<int> PRIMARY_HEADER = {
     3,   // Packet Version Number
     1,   // Packet Type
     1,   // Secondary Header Flag
@@ -40,7 +40,7 @@ const vector<string> PRIMARY_HEADER_FIELDS = {
 
 
 // Tables 3.2-1 -> 3.2-19 from Pages 15 -> 54
-const u_int8_t SECONDARY_HEADER[46] = {
+const vector<int> SECONDARY_HEADER = {
     32,  // Coarse Time
     16,  // Fine Time
     32,  // Sync Marker
@@ -142,7 +142,7 @@ const vector<string> SECONDARY_HEADER_FIELDS = {
 
 
 // Figures 4-7 -> 4-11 from Pages 71 -> 73
-const vector<u_int8_t> BRC_TO_HUFFMAN_START_BIT_LEN = {1, 1, 1, 2, 2};
+const vector<int> BRC_TO_HUFFMAN_START_BIT_LEN = {1, 1, 1, 2, 2};
 
 // Figures 4-7 -> 4-11 from Pages 71 -> 73
 const vector<unordered_map<u_int16_t, u_int8_t>> BRC_TO_HUFFMAN_CODING = {
@@ -155,10 +155,11 @@ const vector<unordered_map<u_int16_t, u_int8_t>> BRC_TO_HUFFMAN_CODING = {
 
 
 // Table 5.2-1 from Page 78
-const u_int8_t BRC_TO_THIDX[5] = {3, 3, 5, 6, 8};
+const int BRC_TO_THIDX[5] = {3, 3, 5, 6, 8};
 
 // Figures 4-7 -> 4-11 from Pages 71 -> 73
-const vector<vector<array<float, 17>>> SIMPLE_RECONSTRUCTION_METHOD = {
+// const vector<vector<array<float, 17>>> SIMPLE_RECONSTRUCTION_METHOD = {
+const vector<vector<vector<float>>> SIMPLE_RECONSTRUCTION_METHOD = {
     {
         { 3.0000,  3.0000,  3.1200,  3.5500,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000},
         { 7.0000,  7.0000,  7.0000,  7.1700,  7.4000,  7.7600,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000},
@@ -178,7 +179,7 @@ const vector<vector<array<float, 17>>> SIMPLE_RECONSTRUCTION_METHOD = {
 const int BRC_TO_M_CODE[5] = {3, 4, 6, 9, 15};
 
 // Table 5.2-2 from Page 79
-const vector<vector<array<float, 16>>> NORMALIZED_RECONSTRUCTION_LEVELS = {
+const vector<vector<vector<float>>> NORMALIZED_RECONSTRUCTION_LEVELS = {
     {
         {0.2490, 0.7680, 1.3655, 2.1864, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000},
         {0.1290, 0.3900, 0.6601, 0.9471, 1.2623, 1.6261, 2.0793, 2.7467, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000},
