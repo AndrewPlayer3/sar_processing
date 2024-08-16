@@ -6,6 +6,9 @@
 using namespace std;
 
 
+const double F_REF = 37.53472224;
+
+
 const u_int8_t PRIMARY_HEADER_SIZE   = 6;
 const u_int8_t SECONDARY_HEADER_SIZE = 62;
 const u_int8_t WORD_SIZE             = 16;
@@ -59,8 +62,10 @@ const vector<int> SECONDARY_HEADER = {
     8,   // N/A
     8,   // Range Decimation
     8,   // RX Gain
-    16,  // TX Ramp Rate
-    16,  // Pulse Start Frequency
+    1,   // TX Ramp Rate Sign
+    15,  // TX Ramp Rate Mangitude
+    1,   // Pulse Start Frequency Sign
+    15,  // Pulse Start Frequency Magnitude
     24,  // Pulse Length
     3,   // N/A
     5,   // Rank
@@ -108,8 +113,10 @@ const vector<string> SECONDARY_HEADER_FIELDS = {
     "na_3",
     "range_decimation",
     "rx_gain",
-    "tx_ramp_rate",
-    "pulse_start_frequency",
+    "tx_ramp_rate_sign",
+    "tx_ramp_rate_mag",
+    "pulse_start_frequency_sign",
+    "pulse_start_frequency_mag",
     "pulse_length",
     "na_4",
     "rank",
