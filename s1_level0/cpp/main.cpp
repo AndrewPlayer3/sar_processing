@@ -3,52 +3,104 @@
 using namespace std;
 
 
+void print_packet_at_index(
+    string filename,
+    int index,
+    bool headers = true,
+    bool pulse_info = false,
+    bool modes = false
+) {
+    std::ifstream data(filename, std::ios::binary);
+    if (!data.is_open()) 
+    {
+        throw runtime_error("Unable to open: " + filename);
+    }
+    vector<L0Packet> packets = get_n_packets(data, index + 1, false, 0);
+
+    if (index >= packets.size())
+    {
+        throw out_of_range("Index is greater than the number of packets.");
+    }
+    L0Packet packet = packets[index];
+
+    if (headers)
+    {
+        packet.print_primary_header();
+        packet.print_secondary_header();
+    }
+    if (pulse_info) packet.print_pulse_info();
+    if (modes)      packet.print_modes();
+}
+
+
 int main(int argc, char* argv[]) 
 {
     if(argv[1] == __null) 
     {
-        cout << "Please enter a filename." << endl;
+        cout << "Please enter a command." << endl;
         return 1;
     }
-    std::ifstream data(string(argv[1]), std::ios::binary);
-    if (!data.is_open()) 
+
+    string command = string(argv[1]);
+
+    if (command == "print_nth_headers")
     {
-        throw runtime_error("Unable to open: " + string(argv[1]));
+        if(argv[2] == __null || argv[3] == __null) 
+        {
+            cout << "Please enter a packet index and filename." << endl;
+            return 1;
+        }
+        string filename = string(argv[3]);
+        print_packet_at_index(filename, stoi(argv[2]));
     }
-
-    L0Packet packet = decode_next_packet(data);
-
-    cout << "" << endl;
-    packet.print_primary_header();
-    cout << "" << endl;
-    packet.print_secondary_header();
-
-    std::ifstream index_data(string(argv[2]), std::ios::binary);
-    if (!index_data.is_open()) 
+    else if (command == "time_n")
     {
-        throw runtime_error("Unable to open: " + string(argv[2]));
+        if(argv[2] == __null || argv[3] == __null) 
+        {
+            cout << "Please enter the packet count to time and a filename." << endl;
+            return 1;
+        }
+
+        string filename = string(argv[3]);
+        ifstream data(filename, ios::binary);
+        if (!data.is_open()) 
+        {
+            throw runtime_error("Unable to open: " + filename);
+        }
+        int n = stoi(argv[2]);
+
+        double runtime = time_packet_generation(data, n, false, 0);
+
+        cout << "Decoded " << n << " packets in " << runtime << "s." << endl;
     }
-
-    vector<unordered_map<string, int>> index_records = index_decoder(index_data);
-
-    index_data.close();
-
-    std::ifstream annot_data(string(argv[3]), std::ios::binary);
-    if (!annot_data.is_open()) 
+    else if (command == "print_nth_pulse_info")
     {
-        throw runtime_error("Unable to open: " + string(argv[3]));
+        if(argv[2] == __null || argv[3] == __null) 
+        {
+            cout << "Please enter the packet index and filename." << endl;
+            return 1;
+        }
+        int n = stoi(argv[2]);
+
+        string filename = string(argv[3]);
+        print_packet_at_index(filename, n, false, true);
     }
+    else if (command == "print_nth_modes")
+    {
+        if(argv[2] == __null || argv[3] == __null) 
+        {
+            cout << "Please enter the packet index and filename." << endl;
+            return 1;
+        }
+        int n = stoi(argv[2]);
 
-    vector<unordered_map<string, int>> annotation_records = annotation_decoder(annot_data);
-
-    annot_data.close();
-
-    cout << "" << endl;
-    cout << "Number of Index Records: " << index_records.size() << endl;
-    cout << "Number of Annotation Records: " << annotation_records.size() << endl;
-    cout << "" << endl;    
-
-    double total_runtime = time_packet_generation(data, annotation_records.size(), true, 1000); 
+        string filename = string(argv[3]);
+        print_packet_at_index(filename, n, false, false, true);
+    }
+    else
+    {
+        cout << command << " is not a valid command." << endl;
+    }
 
     // g++ -std=c++20 -O3 main.cpp -o main
     // Decoded single packet in 0.0277048s.
