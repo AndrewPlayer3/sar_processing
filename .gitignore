@@ -5,4 +5,6 @@ sar_notebooks/.ipynb_checkpoints/*
 s1_level0/__pycache__/*
 s1_level0/.ipynb_checkpoints/*
 s1_level0/sar_data/*
+s1_level0/cpp/bin/*
 .DS_STORE
+.vscode/*
