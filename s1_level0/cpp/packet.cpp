@@ -395,6 +395,10 @@ int L0Packet::_set_quad(QUAD& component, int& bit_index)
         else if (is_qe)
         {
             threshold = read_n_bits(_raw_user_data, bit_index, threshold_bits);
+            if (threshold > 256)
+            {
+                throw runtime_error("Threshold Index is invalid.");
+            }
             _thresholds.push_back(threshold);
             bit_index += threshold_bits;
         }
