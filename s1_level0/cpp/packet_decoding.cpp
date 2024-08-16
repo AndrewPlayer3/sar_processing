@@ -5,7 +5,7 @@ using namespace std;
 
 unordered_map<string, int> get_header_dict(
     const vector<u_int8_t>&  bytes,
-    const u_int8_t*          bit_lengths,
+    const vector<int>&       bit_lengths,
     const vector<string>&    field_names
 ) {
     int num_fields = field_names.size();
@@ -41,7 +41,7 @@ L0Packet decode_next_packet(ifstream& data)
 
     u_int32_t packet_length    = primary_header["packet_data_length"];
     u_int32_t user_data_length = packet_length + 1 - SECONDARY_HEADER_SIZE;
-    
+
     vector<u_int8_t> user_data = read_bytes(data, user_data_length);
 
     L0Packet packet = L0Packet(
@@ -202,7 +202,6 @@ vector<L0Packet> get_all_packets(ifstream& data, const bool& log, const int& log
         }
         catch(length_error)
         {
-            cout << "Length error encountered, breaking..." << endl;
             break;
         }
     }
