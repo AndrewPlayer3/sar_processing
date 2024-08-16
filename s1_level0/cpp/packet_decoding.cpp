@@ -15,14 +15,9 @@ unordered_map<string, int> get_header_dict(
 
     for (int i = 0; i < num_fields; i++) 
     {
-        u_int8_t bit_len    = bit_lengths[i];
-        string   field_name = field_names[i];
+        header[field_names[i]] = read_n_bits(bytes, bit_index, bit_lengths[i]);
 
-        u_int32_t value = read_n_bits(bytes, bit_index, bit_len);
-
-        header[field_name] = value;
-
-        bit_index += bit_len;
+        bit_index += bit_lengths[i];
     }
     return header;
 }
@@ -176,4 +171,75 @@ double time_packet_generation(ifstream& data, const int& num_packets, const bool
     if (log) cout << "Decoded " << num_packets << " packets in " << total_runtime << "s." << endl;
 
     return total_runtime;
+}
+
+
+vector<L0Packet> get_all_packets(ifstream& data, const bool& log, const int& log_interval)
+{
+    vector<L0Packet> packets;
+
+    int index = 0;
+
+    while (!data.eof())
+    {
+        try
+        {
+            L0Packet packet = decode_next_packet(data);
+            
+            packets.push_back(packet);
+
+            if (log && index % log_interval == 0 && index != 0)
+            {
+                cout << "Read " << index << " packets." << endl;
+            }
+
+            index += 1;
+        }
+        catch(runtime_error)
+        {
+            cout << "Runtime error encountered, continuing..." << endl;
+            continue;
+        }
+        catch(length_error)
+        {
+            cout << "Length error encountered, breaking..." << endl;
+            break;
+        }
+    }
+    if (log) cout << "EOF reached after decoding " << index << " packets." << endl;
+    return packets;
+}
+
+
+vector<L0Packet> get_n_packets(ifstream& data, const int& n, const bool& log, const int& log_interval)
+{
+    vector<L0Packet> packets;
+
+    int index = 0;
+
+    while (index < n)
+    {
+        try
+        {
+            L0Packet packet = decode_next_packet(data);
+            
+            packets.push_back(packet);
+
+            if (log && index % log_interval == 0 && index != 0)
+            {
+                cout << "Read " << index << " packets." << endl;
+            }
+
+            index += 1;
+        }
+        catch(runtime_error)
+        {
+            continue;
+        }
+        catch(length_error)
+        {
+            throw out_of_range("n is greater than the available number of packets.");
+        }
+    }
+    return packets;
 }
