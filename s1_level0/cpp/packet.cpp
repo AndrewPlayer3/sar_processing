@@ -167,6 +167,7 @@ void L0Packet::print_secondary_header()
 {
     for (string key : SECONDARY_HEADER_FIELDS) 
     {
+        if (key.substr(0, 3) == "na_") continue;
         cout << key << ": " << _secondary_header[key] << endl;
     }
 }
@@ -194,6 +195,8 @@ void L0Packet::print_pulse_info()
     cout << "SWL: " << get_swl() << endl;
     cout << "SWST: " << get_swst() << endl;
     cout << "RX Gain: " << get_rx_gain() << endl;
+    cout << "Range Decimation: " << _secondary_header["range_decimation"] << endl;
+    cout << "TX Pulse Number: " << _secondary_header["tx_pulse_number"] << endl;
 }
 
 
