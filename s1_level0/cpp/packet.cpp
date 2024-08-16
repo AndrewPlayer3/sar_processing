@@ -163,11 +163,15 @@ void L0Packet::print_primary_header()
     }
 }
 
+
 void L0Packet::print_secondary_header() 
 {
     for (string key : SECONDARY_HEADER_FIELDS) 
     {
-        if (key.substr(0, 3) == "na_") continue;
+        if (key.substr(0, 3) == "na_")
+        {
+            continue;
+        }
         cout << key << ": " << _secondary_header[key] << endl;
     }
 }
@@ -212,7 +216,7 @@ vector<complex<double>> L0Packet::get_complex_samples()
 
 void L0Packet::_set_data_format() 
 {
-    unordered_set<int> type_c_modes = {3, 4, 5};
+    unordered_set<int> type_c_modes = { 3,  4,  5};
     unordered_set<int> type_d_modes = {12, 13, 14};
 
     if (_baq_mode == 0) 
