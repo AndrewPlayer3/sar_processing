@@ -8,7 +8,6 @@ using namespace std;
 
 const double F_REF = 37.53472224;
 
-
 const u_int8_t PRIMARY_HEADER_SIZE   = 6;
 const u_int8_t SECONDARY_HEADER_SIZE = 62;
 const u_int8_t WORD_SIZE             = 16;
@@ -145,14 +144,7 @@ const vector<string> SECONDARY_HEADER_FIELDS = {
 // Figures 4-7 -> 4-11 from Pages 71 -> 73
 const vector<u_int8_t> BRC_TO_HUFFMAN_START_BIT_LEN = {1, 1, 1, 2, 2};
 
-// const vector<unordered_map<string, int>> BRC_TO_HUFFMAN_CODING = {
-//     {{"0", 0}, {"10", 1}, {"110", 2}, {"111", 3}},
-//     {{"0", 0}, {"10", 1}, {"110", 2}, {"1110", 3}, {"1111", 4}},
-//     {{"0", 0}, {"10", 1}, {"110", 2}, {"1110", 3}, {"11110", 4}, {"111110", 5}, {"111111", 6}},
-//     {{"00", 0}, {"01", 1}, {"10", 2}, {"110", 3}, {"1110", 4}, {"11110", 5}, {"111110", 6}, {"1111110", 7}, {"11111110", 8}, {"11111111", 9}},
-//     {{"00", 0}, {"010", 1}, {"011", 2}, {"100", 3}, {"101", 4}, {"1100", 5}, {"1101", 6}, {"1110", 7}, {"11110", 8}, {"111110", 9}, {"11111100", 10}, {"11111101", 11}, {"111111100", 12}, {"111111101", 13}, {"111111110", 14}, {"111111111", 15}}
-// };
-
+// Figures 4-7 -> 4-11 from Pages 71 -> 73
 const vector<unordered_map<u_int16_t, u_int8_t>> BRC_TO_HUFFMAN_CODING = {
     {{0, 0}, {2, 1}, {6, 2}, {7, 3}},
     {{0, 0}, {2, 1}, {6, 2}, {14, 3}, {15, 4}},
@@ -165,7 +157,7 @@ const vector<unordered_map<u_int16_t, u_int8_t>> BRC_TO_HUFFMAN_CODING = {
 // Table 5.2-1 from Page 78
 const u_int8_t BRC_TO_THIDX[5] = {3, 3, 5, 6, 8};
 
-
+// Figures 4-7 -> 4-11 from Pages 71 -> 73
 const vector<vector<vector<float>>> SIMPLE_RECONSTRUCTION_METHOD = {
     {
         {3.0000, 3.0000, 3.1200, 3.5500, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000},
@@ -185,6 +177,7 @@ const vector<vector<vector<float>>> SIMPLE_RECONSTRUCTION_METHOD = {
 // Table 5.2-2 from Page 79
 const int BRC_TO_M_CODE[5] = {3, 4, 6, 9, 15};
 
+// Table 5.2-2 from Page 79
 const vector<vector<vector<float>>> NORMALIZED_RECONSTRUCTION_LEVELS = {
     {
         {0.2490, 0.7680, 1.3655, 2.1864, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000},
