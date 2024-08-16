@@ -52,21 +52,21 @@ private:
 
     bool _complex_samples_set_flag = false;
 
-    vector<int> _brc;
-    vector<int> _thresholds;
+    vector<int> _brc = {};
+    vector<int> _thresholds = {};
     vector<complex<double>> _complex_samples;
 
     int _get_next_word_boundary(const int& bit_index);
 
     double _get_type_d_s_value(
-        const int& brc,
-        const int& threshold_index,
+        const u_int8_t& brc,
+        const u_int16_t& threshold_index,
         const int& sign,
         const int& m_code
     );
 
     H_CODE _get_h_code(
-        const u_int16_t& brc,
+        const u_int8_t& brc,
         int& bit_index,
         const bool& is_last_block
     );
@@ -110,6 +110,9 @@ public:
     int  get_num_baq_blocks  () {return _num_baq_blocks;}
     int  get_user_data_length() {return _user_data_length;}
     char get_data_format() {return _data_format;}
+
+    int primary_header(const string& key) {return _primary_header[key];}
+    int secondary_header(const string& key) {return _secondary_header[key];}
 
     int get_baq_block_length();
 
