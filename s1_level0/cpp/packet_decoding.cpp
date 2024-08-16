@@ -161,6 +161,7 @@ double time_packet_generation(ifstream& data, const int& num_packets, const bool
         }
         catch(runtime_error)
         {
+            cout << "Caught runtime error while decoding packet #" << i << endl;
             continue;
         }
         catch(length_error)
@@ -197,7 +198,7 @@ vector<L0Packet> get_all_packets(ifstream& data, const bool& log, const int& log
         }
         catch(runtime_error)
         {
-            cout << "Runtime error encountered, continuing..." << endl;
+            cout << "Runtime error encountered while decoding packet #" << index << endl;
             continue;
         }
         catch(length_error)
@@ -233,6 +234,7 @@ vector<L0Packet> get_n_packets(ifstream& data, const int& n, const bool& log, co
         }
         catch(runtime_error)
         {
+            cout << "Caught a runtime error while decoding packet #" << index << endl;
             continue;
         }
         catch(length_error)
