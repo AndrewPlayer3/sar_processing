@@ -1,6 +1,90 @@
+#include <thread>
+
 #include "packet_decoding.hpp"
 
 using namespace std;
+
+
+void complexer(vector<L0Packet>& packets, vector<vector<complex<double>>>& complex_samples)
+{
+    for (L0Packet packet : packets)
+    {
+        try
+        {
+            complex_samples.push_back(packet.get_complex_samples());
+        }
+        catch(...)
+        {
+            cout << "Error encountered." << endl;
+            cout << "Sequence Count: " << packet.primary_header("packet_sequence_count") << endl;
+            cout << "Data Length: " << packet.primary_header("packet_data_length") << endl;
+            cout << "Data Format: " << packet.get_data_format() << endl;
+            cout << "BAQ Mode: " << packet.get_baq_mode() << endl;
+            cout << "Sensor Mode: " << packet.get_sensor_mode() << endl;
+            cout << "Error Mode: " << packet.get_error_status() << endl;
+            cout << "Quad Count: " << packet.get_num_quads() << endl;
+            cout << "BAQ Block Count: " << packet.get_num_baq_blocks() << endl;
+            cout << "" << endl;
+        }
+    }
+}
+
+
+void thread_test(ifstream& data)
+{
+
+    int num_packets = 10000;
+    double runtime  = 0.0;
+
+    vector<L0Packet> packets = get_all_packets(data, false, 0);
+
+    auto start = chrono::high_resolution_clock::now();
+
+    vector<L0Packet> t1_packets = {packets.begin()       , packets.begin() + 2500};
+    vector<L0Packet> t2_packets = {packets.begin() + 2500, packets.begin() + 5000};
+    vector<L0Packet> t3_packets = {packets.begin() + 5000, packets.begin() + 7500};
+    vector<L0Packet> t4_packets = {packets.begin() + 7500, packets.begin() + 10000};
+
+    vector<vector<complex<double>>> t1_samples = {};
+    vector<vector<complex<double>>> t2_samples = {};
+    vector<vector<complex<double>>> t3_samples = {};
+    vector<vector<complex<double>>> t4_samples = {};
+
+    thread t1(ref(complexer), ref(t1_packets), ref(t1_samples));
+    thread t2(ref(complexer), ref(t2_packets), ref(t2_samples));
+    thread t3(ref(complexer), ref(t3_packets), ref(t3_samples));
+    thread t4(ref(complexer), ref(t4_packets), ref(t4_samples));
+
+    t1.join();
+    t2.join();
+    t3.join();
+    t4.join();
+
+    vector<vector<complex<double>>> complex_samples;
+
+    for (vector<complex<double>> samples : t1_samples)
+    {
+        complex_samples.push_back(samples);
+    }
+    for (vector<complex<double>> samples : t2_samples)
+    {
+        complex_samples.push_back(samples);
+    }
+    for (vector<complex<double>> samples : t3_samples)
+    {
+        complex_samples.push_back(samples);
+    }
+    for (vector<complex<double>> samples : t4_samples)
+    {
+        complex_samples.push_back(samples);
+    }
+
+    auto end = chrono::high_resolution_clock::now();
+
+    chrono::duration<double> difference = end - start;
+
+    cout << "Decoded " << num_packets << " packets in " << difference.count() << "s." << endl;
+}
 
 
 void print_packet_at_index(
@@ -96,6 +180,42 @@ int main(int argc, char* argv[])
 
         string filename = string(argv[3]);
         print_packet_at_index(filename, n, false, false, true);
+    }
+    else if (command == "thread_test")
+    {
+        if(argv[2] == __null) 
+        {
+            cout << "Please enter the filename." << endl;
+            return 1;
+        }
+        string filename = string(argv[2]);
+        std::ifstream data(filename, std::ios::binary);
+        if (!data.is_open()) 
+        {
+            throw runtime_error("Unable to open: " + filename);
+        }
+        thread_test(data);
+    }
+    else if (command == "nth_complex_samples")
+    {
+        if(argv[2] == __null || argv[3] == __null) 
+        {
+            cout << "Please enter the packet index and filename." << endl;
+            return 1;
+        }
+        int n = stoi(argv[2]);
+        string filename = string(argv[3]);
+        std::ifstream data(filename, std::ios::binary);
+        if (!data.is_open()) 
+        {
+            throw runtime_error("Unable to open: " + filename);
+        }
+        vector<L0Packet> packets = get_n_packets(data, n + 1, false, 0);
+        vector<complex<double>> complex_samples = packets[n].get_complex_samples();
+        for (complex<double> sample : complex_samples)
+        {
+            cout << "Complex Value: " << sample << endl;
+        }
     }
     else
     {
