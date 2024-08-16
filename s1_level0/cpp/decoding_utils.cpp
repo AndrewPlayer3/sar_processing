@@ -1,41 +1,31 @@
+#include <iostream>
 #include "decoding_utils.hpp"
 
 
 u_int16_t huffman_decode(const vector<u_int8_t>& data, const int& brc, int& bit_index)
 {
-    unordered_map<u_int16_t, u_int8_t> huffman_coding = BRC_TO_HUFFMAN_CODING[brc];
+    vector<unordered_map<u_int16_t, u_int8_t>> huffman_coding = HUFFMAN_CODING[brc];
 
-    int bit_len = BRC_TO_HUFFMAN_START_BIT_LEN[brc];
     u_int16_t bits = -1;
 
-    if (brc == 4 && (read_n_bits(data, bit_index, bit_len) == 0))
-    {
-        bit_index += 2;
-        return 0;
-    }
-    else if (brc == 4)
-    {
-        bit_len += 1;
-    }
+    int bit_len = BRC_TO_HUFFMAN_START_BIT_LEN[brc];
 
-    while (!huffman_coding.contains(bits))
+    int max_bits = 10;
+    for (int i = 0; i < max_bits; i++)
     {
         bits = read_n_bits(data, bit_index, bit_len);
 
-        if (!huffman_coding.contains(bits)) 
-        {
-            bit_len += 1;
-        }
+        if (!huffman_coding[bit_len - 1].contains(bits)) bit_len += 1;
+        else break;
 
         if (bit_len > 10) 
         {
             throw out_of_range("Max bit length exceeded in Huffman decoding.");
         }
     }
-
     bit_index += bit_len;
 
-    return huffman_coding[bits];
+    return huffman_coding[bit_len - 1][bits];
 }
 
 
