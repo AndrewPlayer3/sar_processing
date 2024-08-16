@@ -1,6 +1,202 @@
 #include "packet.hpp"
 
 
+int L0Packet::get_baq_block_length()
+{
+    return 8 * (_secondary_header["baq_block_length"] + 1);
+}
+
+
+double L0Packet::get_pri()
+{
+    return _secondary_header["pri"] / F_REF;
+}
+
+
+double L0Packet::get_pulse_length()
+{
+    return _secondary_header["pulse_length"] / F_REF;
+}
+
+
+double L0Packet::get_swl()
+{
+    return _secondary_header["swl"] / F_REF;
+}
+
+
+double L0Packet::get_swst()
+{
+    return _secondary_header["swst"] / F_REF;
+}
+
+
+double L0Packet::get_rx_gain()
+{
+    return -0.5 * _secondary_header["rx_gain"];
+}
+
+
+double L0Packet::get_start_frequency()
+{
+    int sign = _secondary_header["pulse_start_frequency_sign"] == 0 ? -1 : 1;
+    int mag  = _secondary_header["pulse_start_frequency_mag"];
+
+    double txprr = get_tx_ramp_rate();
+
+    return (sign * mag * (F_REF / 16384)) + (txprr / (4 * F_REF));
+}
+
+
+double L0Packet::get_tx_ramp_rate()
+{
+    int sign = _secondary_header["tx_ramp_rate_sign"] == 0 ? -1 : 1;
+    int mag  = _secondary_header["tx_ramp_rate_mag"];
+
+    return sign * mag * (pow(F_REF, 2) / 2097152);
+}
+
+
+char L0Packet::get_tx_polarization()
+{
+    int pol_code = _secondary_header["polarisation"];
+    
+    if (pol_code >= 0 && pol_code <= 3)
+    {
+        return 'H';
+    }
+    else if (pol_code >= 4 && pol_code <= 7)
+    {
+        return 'V';
+    }
+    else
+    {
+        throw runtime_error("The polarization code is invalid.");
+    }
+}
+
+
+char L0Packet::get_rx_polarization()
+{
+    switch (_secondary_header["rx_channel_id"])
+    {
+        case 0:
+            return 'V';
+        case 1:
+            return 'H';
+        default:
+            throw runtime_error("The rx_channel_id is invalid.");
+    }
+}
+
+
+string L0Packet::get_baq_mode()
+{
+    string baq_mode = unordered_map<int, string>({
+        {0,  "bypass_mode"},
+        {3,  "3_bit_mode"},
+        {4,  "4_bit_mode"},
+        {5,  "5_bit_mode"},
+        {12, "fdbaq_mode_0"},
+        {13, "fdbaq_mode_1"},
+        {14, "fdbaq_mode_2"}
+    })[_baq_mode];
+    
+    return baq_mode == "" ? "n_a" : baq_mode;
+}
+
+
+string L0Packet::get_test_mode()
+{
+    string test_mode = unordered_map<int, string>({
+        {0, "measurement_mode"},
+        {1, "n_a"},
+        {3, "n_a"},
+        {4, "contingency"},
+        {5, "contingency"},
+        {6, "test_mode_baq"},
+        {7, "test_mode_bypass"}
+    })[_test_mode];
+
+    if (test_mode == "")
+    {
+        throw out_of_range("The test mode number is not in the range of valid values.");
+    }
+    return test_mode;
+}
+
+
+string L0Packet::get_sensor_mode()
+{
+    return ECC_CODE_TO_SENSOR_MODE[_secondary_header["ecc_number"]];
+}
+
+
+string L0Packet::get_signal_type()
+{
+    string signal_type = unordered_map<int, string>({
+        {0,  "echo"},
+        {1,  "noise"},
+        {8,  "tx_cal"},
+        {9,  "rx_cal"},
+        {10, "epdn_cal"},
+        {11, "ta_cal"},
+        {12, "apdn_cal"},
+        {15, "txh_cal_iso"}
+    })[_secondary_header["signal_type"]];
+    
+    return signal_type == "" ? "n_a" : signal_type;
+}
+
+
+string L0Packet::get_error_status()
+{
+    return _secondary_header["error_flag"] == 0 ? "nominal" : "ssb_corrupt";
+}
+
+
+void L0Packet::print_primary_header() 
+{
+    for (string key : PRIMARY_HEADER_FIELDS) 
+    {
+        cout << key << ": " << _primary_header[key] << endl;
+    }
+}
+
+void L0Packet::print_secondary_header() 
+{
+    for (string key : SECONDARY_HEADER_FIELDS) 
+    {
+        cout << key << ": " << _secondary_header[key] << endl;
+    }
+}
+
+
+void L0Packet::print_modes()
+{
+    cout << "BAQ Mode: " << get_baq_mode() << endl;
+    cout << "BAQ Block Length: " << get_baq_block_length() << endl;
+    cout << "Test Mode: " << get_test_mode() << endl;
+    cout << "Sensor Mode: " << get_sensor_mode() << endl;
+    cout << "Signal Type: " << get_signal_type() << endl;
+    cout << "Error Status: " << get_error_status() << endl;
+}
+
+
+void L0Packet::print_pulse_info() 
+{
+    cout << "RX Polarization: " << get_rx_polarization() << endl;
+    cout << "TX Polarization: " << get_tx_polarization() << endl;
+    cout << "Pulse Length: " << get_pulse_length() << endl;
+    cout << "TX Ramp Rate (TXPRR): " << get_tx_ramp_rate() << endl;
+    cout << "Start Frequency (TXPSF): " << get_start_frequency() << endl;
+    cout << "PRI: " << get_pri() << endl;
+    cout << "SWL: " << get_swl() << endl;
+    cout << "SWST: " << get_swst() << endl;
+    cout << "RX Gain: " << get_rx_gain() << endl;
+}
+
+
 vector<complex<double>> L0Packet::get_complex_samples()
 {
     if (!_complex_samples_set_flag)
@@ -8,31 +204,6 @@ vector<complex<double>> L0Packet::get_complex_samples()
         _set_complex_samples();
     }
     return _complex_samples;
-}
-
-
-void L0Packet::print_primary_header() 
-{
-    cout << "---------------" << endl;
-    cout << "Primary Header:" << endl;
-    cout << "---------------" << endl;
-    for (string key : PRIMARY_HEADER_FIELDS) 
-    {
-        cout << key << ": " << _primary_header[key] << endl;
-    }
-    cout << "---------------" << endl;
-}
-
-void L0Packet::print_secondary_header() 
-{
-    cout << "-----------------" << endl;
-    cout << "Secondary Header:" << endl;
-    cout << "-----------------" << endl;
-    for (string key : SECONDARY_HEADER_FIELDS) 
-    {
-        cout << key << ": " << _secondary_header[key] << endl;
-    }
-    cout << "-----------------" << endl;
 }
 
 
