@@ -261,8 +261,8 @@ vector<complex<double>> L0Packet::_decode_types_a_and_b()
 
 
 double L0Packet::_get_type_d_s_value(
-    const int& brc,
-    const int& threshold_index,
+    const u_int8_t& brc,
+    const u_int16_t& threshold_index,
     const int& sign,
     const int& m_code
 ) {
@@ -345,7 +345,7 @@ vector<complex<double>> L0Packet::_get_type_d_complex_samples(
 }
 
 
-H_CODE L0Packet::_get_h_code(const u_int16_t& brc, int& bit_index, const bool& is_last_block)
+H_CODE L0Packet::_get_h_code(const u_int8_t& brc, int& bit_index, const bool& is_last_block)
 {
         H_CODE h_code;
 
@@ -370,15 +370,12 @@ H_CODE L0Packet::_get_h_code(const u_int16_t& brc, int& bit_index, const bool& i
 
 
 int L0Packet::_set_quad(QUAD& component, int& bit_index)
-{   
-    u_int16_t brc;
-    u_int8_t  threshold;
+{
+    u_int8_t brc;
+    u_int16_t threshold;
 
     int brc_bits       = 3;
-    int threshold_bits = 8;
-
-    int total_bits_read    = 0;
-    int bits_read_for_code = 0;       
+    int threshold_bits = 8;       
 
     for (int i = 0; i < _num_baq_blocks; i++)
     {
@@ -390,7 +387,7 @@ int L0Packet::_set_quad(QUAD& component, int& bit_index)
             brc = read_n_bits(_raw_user_data, bit_index, brc_bits);
             if (brc > 4)
             {
-                throw runtime_error("The BRC value is invalid.");
+                throw runtime_error("BRC value is invalid.");
             }
             _brc.push_back(brc);
             bit_index += brc_bits;
@@ -408,12 +405,10 @@ int L0Packet::_set_quad(QUAD& component, int& bit_index)
         component.signs.push_back(h_code.signs);
         component.m_codes.push_back(h_code.m_codes);
 
-        component.bits_read += h_code.bits_read;
-
         int brc_offset       = is_ie ? brc_bits       : 0;
         int threshold_offset = is_qe ? threshold_bits : 0;
 
-        total_bits_read += h_code.bits_read + brc_offset + threshold_offset;
+        component.bits_read += h_code.bits_read + brc_offset + threshold_offset;
     }
 
     return _get_next_word_boundary(bit_index);
@@ -427,7 +422,6 @@ vector<complex<double>> L0Packet::_decode_type_d()
     QUAD QE = QUAD("QE");
     QUAD QO = QUAD("QO");
 
-    int bit_counts[4];
     int bit_index = 0;
 
     bit_index = _set_quad(IE, bit_index);
