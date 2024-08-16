@@ -6,7 +6,17 @@ u_int16_t huffman_decode(const vector<u_int8_t>& data, const int& brc, int& bit_
     unordered_map<u_int16_t, u_int8_t> huffman_coding = BRC_TO_HUFFMAN_CODING[brc];
 
     int bit_len = BRC_TO_HUFFMAN_START_BIT_LEN[brc];
-    int bits    = -1;
+    u_int16_t bits = -1;
+
+    if (brc == 4 && (read_n_bits(data, bit_index, bit_len) == 0))
+    {
+        bit_index += 2;
+        return 0;
+    }
+    else if (brc == 4)
+    {
+        bit_len += 1;
+    }
 
     while (!huffman_coding.contains(bits))
     {
