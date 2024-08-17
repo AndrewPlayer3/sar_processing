@@ -401,12 +401,13 @@ double L0Packet::_get_type_c_s_value(
 ) {
         if (threshold_index <= BAQ_MODE_TO_THIDX.at(_baq_mode))
         {
-            if      (m_code <  3) return pow(-1, sign) * m_code;
-            else if (m_code == 3) return pow(-1, sign) * SIMPLE_RECONSTRUCTION_METHOD[1][_baq_mode][threshold_index];
+            int flag = BAQ_MODE_TO_M_CODE.at(_baq_mode);
+            if      (m_code <  flag) return pow(-1, sign) * double(m_code);
+            else if (m_code == flag) return pow(-1, sign) * SIMPLE_RECONSTRUCTION_METHOD[0][_baq_mode - 3][threshold_index];
             else throw runtime_error("Invalid m_code in s_value generation.");
         }
         double sigma_factor              = THIDX_TO_SF_ARRAY[threshold_index];
-        double norm_reconstruction_level = NORMALIZED_RECONSTRUCTION_LEVELS[1][_baq_mode][m_code];
+        double norm_reconstruction_level = NORMALIZED_RECONSTRUCTION_LEVELS[0][_baq_mode - 3][m_code];
         return pow(-1.0, sign) * norm_reconstruction_level * sigma_factor;
 }
 
@@ -431,7 +432,7 @@ vector<complex<double>> L0Packet::_get_type_c_complex_samples(
                 _get_type_c_s_value(threshold_id, IE.signs[block_id][s_id], IE.m_codes[block_id][s_id]),
                 _get_type_c_s_value(threshold_id, IO.signs[block_id][s_id], IO.m_codes[block_id][s_id]),
                 _get_type_c_s_value(threshold_id, QE.signs[block_id][s_id], QE.m_codes[block_id][s_id]),
-                _get_type_c_s_value(threshold_id, QO.signs[block_id][s_id], QO.m_codes[block_id][s_id]),
+                _get_type_c_s_value(threshold_id, QO.signs[block_id][s_id], QO.m_codes[block_id][s_id])
             });
         }
     }
@@ -460,8 +461,8 @@ H_CODE L0Packet::_get_h_code_type_c(int& bit_index, const bool& is_last_block)
             int sign   = read_n_bits(_raw_user_data, bit_index, 1);
             bit_index += 1;
 
-            int m_code = read_n_bits(_raw_user_data, bit_index, _baq_mode);
-            bit_index += _baq_mode;
+            int m_code = read_n_bits(_raw_user_data, bit_index, _baq_mode - 1);
+            bit_index += _baq_mode - 1;
 
             h_code.signs.push_back(sign);
             h_code.m_codes.push_back(m_code);                
