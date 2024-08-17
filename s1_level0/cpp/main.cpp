@@ -5,31 +5,6 @@
 using namespace std;
 
 
-void complexer(vector<L0Packet>& packets, vector<vector<complex<double>>>& complex_samples)
-{
-    for (L0Packet packet : packets)
-    {
-        try
-        {
-            complex_samples.push_back(packet.get_complex_samples());
-        }
-        catch(...)
-        {
-            cout << "Error encountered." << endl;
-            cout << "Sequence Count: " << packet.primary_header("packet_sequence_count") << endl;
-            cout << "Data Length: " << packet.primary_header("packet_data_length") << endl;
-            cout << "Data Format: " << packet.get_data_format() << endl;
-            cout << "BAQ Mode: " << packet.get_baq_mode() << endl;
-            cout << "Sensor Mode: " << packet.get_sensor_mode() << endl;
-            cout << "Error Mode: " << packet.get_error_status() << endl;
-            cout << "Quad Count: " << packet.get_num_quads() << endl;
-            cout << "BAQ Block Count: " << packet.get_num_baq_blocks() << endl;
-            cout << "" << endl;
-        }
-    }
-}
-
-
 void omp_test(ifstream& data)
 {
     vector<L0Packet> packets = get_all_packets(data, false, 10);
