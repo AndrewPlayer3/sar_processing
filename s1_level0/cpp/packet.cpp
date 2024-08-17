@@ -90,6 +90,18 @@ char L0Packet::get_rx_polarization()
 }
 
 
+string L0Packet::get_error_status()
+{
+    return _secondary_header["error_flag"] == 0 ? "nominal" : "ssb_corrupt";
+}
+
+
+string L0Packet::get_sensor_mode()
+{
+    return ECC_CODE_TO_SENSOR_MODE[_secondary_header["ecc_number"]];
+}
+
+
 string L0Packet::get_baq_mode()
 {
     string baq_mode = unordered_map<int, string>({
@@ -126,12 +138,6 @@ string L0Packet::get_test_mode()
 }
 
 
-string L0Packet::get_sensor_mode()
-{
-    return ECC_CODE_TO_SENSOR_MODE[_secondary_header["ecc_number"]];
-}
-
-
 string L0Packet::get_signal_type()
 {
     string signal_type = unordered_map<int, string>({
@@ -146,12 +152,6 @@ string L0Packet::get_signal_type()
     })[_secondary_header["signal_type"]];
     
     return signal_type == "" ? "n_a" : signal_type;
-}
-
-
-string L0Packet::get_error_status()
-{
-    return _secondary_header["error_flag"] == 0 ? "nominal" : "ssb_corrupt";
 }
 
 
