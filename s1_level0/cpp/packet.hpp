@@ -51,6 +51,7 @@ private:
     bool _is_empty = true;
 
     char _data_format;
+
     void _set_data_format();
 
     /*******************/
@@ -68,21 +69,23 @@ private:
     int  _get_next_word_boundary(const int& bit_index);
 
     vector<complex<double>> _decode_type_d();
+    vector<complex<double>> _decode_type_c();
     vector<complex<double>> _decode_types_a_and_b();
-    vector<complex<double>> _get_type_d_complex_samples(QUAD& IE, QUAD& IO, QUAD& QE, QUAD& QO);
-    vector<complex<double>> _get_types_a_and_b_complex_samples(QUAD& IE, QUAD& IO, QUAD& QE, QUAD& QO);
-
-    int _set_quad(QUAD& component, int& bit_index);
-    int _set_a_and_b_quad(QUAD& component, int& bit_index);
-
-    H_CODE _get_h_code(const u_int8_t& brc, int& bit_index, const bool& is_last_block);
-    double _get_type_d_s_value(const u_int8_t& brc, const u_int16_t& threshold_id, const int& sign, const int& m_code);
 
     H_CODE _get_h_code_type_c(int& bit_index, const bool& is_last_block);
-    double _get_type_c_s_value(const u_int16_t& threshold_id, const int& sign, const int& m_code);
+    H_CODE _get_h_code_type_d(const u_int8_t& brc, int& bit_index, const bool& is_last_block);
+
+    double _get_s_values_type_c(const u_int16_t& threshold_id, const int& sign, const int& m_code);
+    double _get_s_values_type_d(const u_int8_t& brc, const u_int16_t& threshold_id, const int& sign, const int& m_code);
+
+    int _set_quad_type_d(QUAD& component, int& bit_index);
     int _set_quad_type_c(QUAD& component, int& bit_index);
-    vector<complex<double>> _decode_type_c();
-    vector<complex<double>> _get_type_c_complex_samples(QUAD& IE, QUAD& IO, QUAD& QE, QUAD& QO);
+    int _set_quad_types_a_and_b(QUAD& component, int& bit_index);
+
+    vector<complex<double>> _get_complex_samples_type_d(QUAD& IE, QUAD& IO, QUAD& QE, QUAD& QO);
+    vector<complex<double>> _get_complex_samples_type_c(QUAD& IE, QUAD& IO, QUAD& QE, QUAD& QO);
+    vector<complex<double>> _get_complex_samples_types_a_and_b(QUAD& IE, QUAD& IO, QUAD& QE, QUAD& QO);
+
 
 public:
     L0Packet(){}    
