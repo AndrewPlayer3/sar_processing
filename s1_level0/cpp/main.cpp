@@ -29,7 +29,12 @@ void omp_test(ifstream& data)
 }
 
 
-void thread_runner(vector<vector<complex<double>>>& complex_samples, vector<L0Packet>& packets, int start_index, int end_index)
+void thread_runner(
+    vector<vector<complex<double>>>& complex_samples,
+    vector<L0Packet>& packets,
+    const int start_index,
+    const int end_index
+)
 {
     for (int i = start_index; i < end_index; i++)
     {
@@ -53,17 +58,21 @@ void thread_test(ifstream& data)
 
     for (int i = 0; i < num_threads; i++)
     {
-        int start_index = i * chunk_size;
+        int start_index =  i * chunk_size;
         int end_index   = (i == num_threads - 1) ? num_packets : start_index + chunk_size;
-        threads.emplace_back(thread_runner, ref(complex_samples), ref(packets), start_index, end_index);
+        
+        threads.emplace_back(
+            thread_runner,
+            ref(complex_samples),
+            ref(packets),
+            start_index,
+            end_index
+        );
     }
 
     for (thread& thread : threads)
     {
-        if (thread.joinable())
-        {
-            thread.join();
-        }
+        if (thread.joinable()) thread.join();
     }
 
     chrono::time_point end = chrono::high_resolution_clock::now();
@@ -218,6 +227,38 @@ int main(int argc, char* argv[])
         {
             cout << "Complex Value: " << sample << endl;
         }
+    }
+    else if (command == "check_packet_types")
+    {
+        string filename = string(argv[2]);
+        std::ifstream data(filename, std::ios::binary);
+        if (!data.is_open()) 
+        {
+            throw runtime_error("Unable to open: " + filename);
+        }
+        vector<L0Packet> packets = get_all_packets(data, false, 0);
+        for (int i = 0; i < packets.size(); i++)
+        {
+            L0Packet packet = packets[i];
+            char data_format    = packet.get_data_format();
+            int  sequence_count = packet.primary_header("packet_sequence_count");
+            if (data_format != 'D')
+            {
+                cout << "Packet #" << sequence_count << " at index " << i << " is type " << data_format << endl;
+            }
+        }
+    }
+    else if (command == "nth_packet_type")
+    {
+        string filename = string(argv[3]);
+        std::ifstream data(filename, std::ios::binary);
+        if (!data.is_open()) 
+        {
+            throw runtime_error("Unable to open: " + filename);
+        }
+        int n = stoi(argv[2]);
+        vector<L0Packet> packets = get_n_packets(data, n + 1, false, 0);
+        cout << "Packet Type is " << packets[n].get_data_format() << "." << endl;
     }
     else
     {
