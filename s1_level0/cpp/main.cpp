@@ -32,21 +32,21 @@ void complexer(vector<L0Packet>& packets, vector<vector<complex<double>>>& compl
 
 void omp_test(ifstream& data)
 {
-    double runtime  = 0.0;
-
     vector<L0Packet> packets = get_all_packets(data, false, 10);
 
-    int num_packets = packets.size();
+    const int num_packets = packets.size();
 
-    auto start = chrono::high_resolution_clock::now();
+    chrono::time_point start = chrono::high_resolution_clock::now();
+
+    vector<vector<complex<double>>> complex_samples(num_packets);
 
     #pragma omp parallel for
     for (int i = 0; i < num_packets; i++)
     {
-        packets[i].get_complex_samples();
+        complex_samples[i] = packets[i].get_complex_samples();
     }
 
-    auto end = chrono::high_resolution_clock::now();
+    chrono::time_point end = chrono::high_resolution_clock::now();
 
     chrono::duration<double> difference = end - start;
 
@@ -54,57 +54,44 @@ void omp_test(ifstream& data)
 }
 
 
+void thread_runner(vector<vector<complex<double>>>& complex_samples, vector<L0Packet>& packets, int start_index, int end_index)
+{
+    for (int i = start_index; i < end_index; i++)
+    {
+        complex_samples[i] = packets[i].get_complex_samples();
+    }
+}
+
+
 void thread_test(ifstream& data)
 {
-    double runtime  = 0.0;
-
     vector<L0Packet> packets = get_all_packets(data, false, 0);
+    vector<thread>   threads;
 
-    int num_packets = 50000;
+    const int num_packets = packets.size();
+    const int num_threads = thread::hardware_concurrency();
+    const int chunk_size  = num_packets / num_threads;
 
-    auto start = chrono::high_resolution_clock::now();
+    chrono::time_point start = chrono::high_resolution_clock::now();
 
+    vector<vector<complex<double>>> complex_samples(num_packets);
 
-    vector<L0Packet> t1_packets = {packets.begin()        , packets.begin() + 12500};
-    vector<L0Packet> t2_packets = {packets.begin() + 12500, packets.begin() + 25000};
-    vector<L0Packet> t3_packets = {packets.begin() + 25000, packets.begin() + 37500};
-    vector<L0Packet> t4_packets = {packets.begin() + 37500, packets.begin() + 50000};
-
-    vector<vector<complex<double>>> t1_samples = {};
-    vector<vector<complex<double>>> t2_samples = {};
-    vector<vector<complex<double>>> t3_samples = {};
-    vector<vector<complex<double>>> t4_samples = {};
-
-    thread t1(ref(complexer), ref(t1_packets), ref(t1_samples));
-    thread t2(ref(complexer), ref(t2_packets), ref(t2_samples));
-    thread t3(ref(complexer), ref(t3_packets), ref(t3_samples));
-    thread t4(ref(complexer), ref(t4_packets), ref(t4_samples));
-
-    t1.join();
-    t2.join();
-    t3.join();
-    t4.join();
-
-    vector<vector<complex<double>>> complex_samples;
-
-    for (vector<complex<double>> samples : t1_samples)
+    for (int i = 0; i < num_threads; i++)
     {
-        complex_samples.push_back(samples);
-    }
-    for (vector<complex<double>> samples : t2_samples)
-    {
-        complex_samples.push_back(samples);
-    }
-    for (vector<complex<double>> samples : t3_samples)
-    {
-        complex_samples.push_back(samples);
-    }
-    for (vector<complex<double>> samples : t4_samples)
-    {
-        complex_samples.push_back(samples);
+        int start_index = i * chunk_size;
+        int end_index   = (i == num_threads - 1) ? num_packets : start_index + chunk_size;
+        threads.emplace_back(thread_runner, ref(complex_samples), ref(packets), start_index, end_index);
     }
 
-    auto end = chrono::high_resolution_clock::now();
+    for (thread& thread : threads)
+    {
+        if (thread.joinable())
+        {
+            thread.join();
+        }
+    }
+
+    chrono::time_point end = chrono::high_resolution_clock::now();
 
     chrono::duration<double> difference = end - start;
 
