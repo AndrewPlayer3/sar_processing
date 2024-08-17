@@ -32,6 +32,8 @@ L0Packet decode_next_packet(ifstream& data)
         PRIMARY_HEADER_FIELDS
     );
 
+    if (data.eof()) return L0Packet();
+
     vector<u_int8_t> secondary_bytes = read_bytes(data, 62);
     unordered_map<string, int> secondary_header = get_header_dict(
         secondary_bytes,
@@ -186,8 +188,11 @@ vector<L0Packet> get_all_packets(ifstream& data, const bool& log, const int& log
         try
         {
             L0Packet packet = decode_next_packet(data);
-            
-            packets.push_back(packet);
+
+            if (!packet.is_empty())
+            {
+                packets.push_back(packet);
+            }
 
             if (log && index % log_interval == 0 && index != 0)
             {

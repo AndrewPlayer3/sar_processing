@@ -50,6 +50,7 @@ private:
 
     char _data_format;
 
+    bool _is_empty = true;
     bool _complex_samples_set_flag = false;
 
     vector<int> _brc = {};
@@ -82,6 +83,8 @@ private:
 
 
 public:
+    L0Packet(){}    
+
     L0Packet(
         unordered_map<string, int> primary_header,
         unordered_map<string, int> secondary_header,
@@ -104,7 +107,11 @@ public:
         }
 
         _set_data_format();
+
+        _is_empty = false;
     }
+
+    bool is_empty() {return _is_empty;}
 
     int  get_num_quads() {return _num_quads;}
     int  get_num_baq_blocks  () {return _num_baq_blocks;}
