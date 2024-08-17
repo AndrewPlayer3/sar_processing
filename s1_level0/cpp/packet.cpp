@@ -248,8 +248,8 @@ void L0Packet::_set_data_format()
 int L0Packet::_get_next_word_boundary(const int& bit_index)
 {
     int offset = bit_index % WORD_SIZE;
-    if (offset == 0) return 0;
-    else return bit_index + (WORD_SIZE - offset);
+    if (offset == 0) return bit_index;
+    return bit_index + (WORD_SIZE - offset);
 }
 
 
