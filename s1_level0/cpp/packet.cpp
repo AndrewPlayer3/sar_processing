@@ -179,28 +179,31 @@ void L0Packet::print_secondary_header()
 
 void L0Packet::print_modes()
 {
-    cout << "BAQ Mode: " << get_baq_mode() << endl;
+    cout << "BAQ Mode: "         << get_baq_mode()         << endl;
     cout << "BAQ Block Length: " << get_baq_block_length() << endl;
-    cout << "Test Mode: " << get_test_mode() << endl;
-    cout << "Sensor Mode: " << get_sensor_mode() << endl;
-    cout << "Signal Type: " << get_signal_type() << endl;
-    cout << "Error Status: " << get_error_status() << endl;
+    cout << "Test Mode: "        << get_test_mode()        << endl;
+    cout << "Sensor Mode: "      << get_sensor_mode()      << endl;
+    cout << "Signal Type: "      << get_signal_type()      << endl;
+    cout << "Error Status: "     << get_error_status()     << endl;
 }
 
 
 void L0Packet::print_pulse_info() 
 {
-    cout << "RX Polarization: " << get_rx_polarization() << endl;
-    cout << "TX Polarization: " << get_tx_polarization() << endl;
-    cout << "Pulse Length: " << get_pulse_length() << endl;
-    cout << "TX Ramp Rate (TXPRR): " << get_tx_ramp_rate() << endl;
+    int range_decimation = _secondary_header["range_decimation"];
+    int tx_pulse_number  = _secondary_header["tx_pulse_number"];
+    
+    cout << "RX Polarization: "         << get_rx_polarization() << endl;
+    cout << "TX Polarization: "         << get_tx_polarization() << endl;
+    cout << "Pulse Length: "            << get_pulse_length()    << endl;
+    cout << "TX Ramp Rate (TXPRR): "    << get_tx_ramp_rate()    << endl;
     cout << "Start Frequency (TXPSF): " << get_start_frequency() << endl;
-    cout << "PRI: " << get_pri() << endl;
-    cout << "SWL: " << get_swl() << endl;
-    cout << "SWST: " << get_swst() << endl;
-    cout << "RX Gain: " << get_rx_gain() << endl;
-    cout << "Range Decimation: " << _secondary_header["range_decimation"] << endl;
-    cout << "TX Pulse Number: " << _secondary_header["tx_pulse_number"] << endl;
+    cout << "PRI: "                     << get_pri()             << endl;
+    cout << "SWL: "                     << get_swl()             << endl;
+    cout << "SWST: "                    << get_swst()            << endl;
+    cout << "RX Gain: "                 << get_rx_gain()         << endl;
+    cout << "Range Decimation: "        << range_decimation      << endl;
+    cout << "TX Pulse Number: "         << tx_pulse_number       << endl;
 }
 
 
