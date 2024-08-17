@@ -257,17 +257,40 @@ vector<complex<double>> L0Packet::get_complex_samples()
 
 void L0Packet::_decode() 
 {
+    QUAD IE = QUAD("IE");
+    QUAD IO = QUAD("IO");
+    QUAD QE = QUAD("QE");
+    QUAD QO = QUAD("QO");
+
+    // bit_index is modified inside of the setter functions.
+    int bit_index = 0;
+
     if (_data_format == 'A' || _data_format == 'B') 
     {
-        _complex_samples =  _decode_types_a_and_b();
+        _set_quad_types_a_and_b(IE, bit_index);
+        _set_quad_types_a_and_b(IO, bit_index);
+        _set_quad_types_a_and_b(QE, bit_index);
+        _set_quad_types_a_and_b(QO, bit_index);
+
+        _complex_samples = _get_complex_samples_types_a_and_b(IE, IO, QE, QO);
     }
-    else if (_data_format == 'C') 
+    else if (_data_format == 'C')
     {
-        _complex_samples = _decode_type_c();
+        _set_quad_type_c(IE, bit_index);
+        _set_quad_type_c(IO, bit_index);
+        _set_quad_type_c(QE, bit_index);
+        _set_quad_type_c(QO, bit_index);
+
+        _complex_samples = _get_complex_samples_type_c(IE, IO, QE, QO);
     }
-    else 
+    else
     {
-        _complex_samples = _decode_type_d();
+        _set_quad_type_d(IE, bit_index);
+        _set_quad_type_d(IO, bit_index);
+        _set_quad_type_d(QE, bit_index);
+        _set_quad_type_d(QO, bit_index);
+
+        _complex_samples = _get_complex_samples_type_d(IE, IO, QE, QO);
     }
 }
 
@@ -333,7 +356,7 @@ vector<complex<double>> L0Packet::_get_complex_samples_types_a_and_b(
 }
 
 
-int L0Packet::_set_quad_types_a_and_b(QUAD& component, int& bit_index)
+void L0Packet::_set_quad_types_a_and_b(QUAD& component, int& bit_index)
 {
     int num_bits = 0;
     int sign_bits = 1;
@@ -356,32 +379,7 @@ int L0Packet::_set_quad_types_a_and_b(QUAD& component, int& bit_index)
     component.signs.push_back(h_code.signs);
     component.m_codes.push_back(h_code.m_codes);
 
-    return _get_next_word_boundary(bit_index);
-}
-
-
-vector<complex<double>> L0Packet::_decode_types_a_and_b()
-{
-    QUAD IE = QUAD("IE");
-    QUAD IO = QUAD("IO");
-    QUAD QE = QUAD("QE");
-    QUAD QO = QUAD("QO");
-
-    int bit_index = 0;
-
-    bit_index = _set_quad_types_a_and_b(IE, bit_index);
-    bit_index = _set_quad_types_a_and_b(IO, bit_index);
-    bit_index = _set_quad_types_a_and_b(QE, bit_index);
-    bit_index = _set_quad_types_a_and_b(QO, bit_index);
-
-    vector<complex<double>> complex_samples = _get_complex_samples_types_a_and_b(
-        IE,
-        IO,
-        QE,
-        QO
-    );
-
-    return complex_samples;
+    bit_index = _get_next_word_boundary(bit_index);
 }
 
 
@@ -392,8 +390,6 @@ vector<complex<double>> L0Packet::_decode_types_a_and_b()
 /***********************************************************************/
 
 
-// TODO: Type C and D packets can share this function by passing the brc/threshold index,
-//       instead of directly passing the brc and threshold values.
 double L0Packet::_get_s_values_type_c(
     const u_int16_t& threshold_index,
     const int& sign,
@@ -474,7 +470,7 @@ H_CODE L0Packet::_get_h_code_type_c(int& bit_index, const bool& is_last_block)
 }
 
 
-int L0Packet::_set_quad_type_c(QUAD& component, int& bit_index)
+void L0Packet::_set_quad_type_c(QUAD& component, int& bit_index)
 {
     u_int16_t threshold;
 
@@ -503,32 +499,7 @@ int L0Packet::_set_quad_type_c(QUAD& component, int& bit_index)
         component.bits_read += h_code.bits_read + (is_qe ? threshold_bits : 0);
     }
 
-    return _get_next_word_boundary(bit_index);
-}
-
-
-vector<complex<double>> L0Packet::_decode_type_c()
-{
-    QUAD IE = QUAD("IE");
-    QUAD IO = QUAD("IO");
-    QUAD QE = QUAD("QE");
-    QUAD QO = QUAD("QO");
-
-    int bit_index = 0;
-
-    bit_index = _set_quad_type_c(IE, bit_index);
-    bit_index = _set_quad_type_c(IO, bit_index);
-    bit_index = _set_quad_type_c(QE, bit_index);
-    bit_index = _set_quad_type_c(QO, bit_index);
-
-    vector<complex<double>> complex_samples = _get_complex_samples_type_c(
-        IE,
-        IO,
-        QE,
-        QO
-    );
-
-    return complex_samples;
+    bit_index = _get_next_word_boundary(bit_index);
 }
 
 
@@ -629,7 +600,7 @@ H_CODE L0Packet::_get_h_code_type_d(const u_int8_t& brc, int& bit_index, const b
 }
 
 
-int L0Packet::_set_quad_type_d(QUAD& component, int& bit_index)
+void L0Packet::_set_quad_type_d(QUAD& component, int& bit_index)
 {
     u_int8_t brc;
     u_int16_t threshold;
@@ -675,30 +646,5 @@ int L0Packet::_set_quad_type_d(QUAD& component, int& bit_index)
         component.bits_read += h_code.bits_read + brc_offset + threshold_offset;
     }
 
-    return _get_next_word_boundary(bit_index);
-}
-
-
-vector<complex<double>> L0Packet::_decode_type_d()
-{
-    QUAD IE = QUAD("IE");
-    QUAD IO = QUAD("IO");
-    QUAD QE = QUAD("QE");
-    QUAD QO = QUAD("QO");
-
-    int bit_index = 0;
-
-    bit_index = _set_quad_type_d(IE, bit_index);
-    bit_index = _set_quad_type_d(IO, bit_index);
-    bit_index = _set_quad_type_d(QE, bit_index);
-    bit_index = _set_quad_type_d(QO, bit_index);
-
-    vector<complex<double>> complex_samples = _get_complex_samples_type_d(
-        IE,
-        IO,
-        QE,
-        QO
-    );
-
-    return complex_samples;
+    bit_index = _get_next_word_boundary(bit_index);
 }

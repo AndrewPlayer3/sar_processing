@@ -68,19 +68,15 @@ private:
     void _decode();
     int  _get_next_word_boundary(const int& bit_index);
 
-    vector<complex<double>> _decode_type_d();
-    vector<complex<double>> _decode_type_c();
-    vector<complex<double>> _decode_types_a_and_b();
-
     H_CODE _get_h_code_type_c(int& bit_index, const bool& is_last_block);
     H_CODE _get_h_code_type_d(const u_int8_t& brc, int& bit_index, const bool& is_last_block);
 
     double _get_s_values_type_c(const u_int16_t& threshold_id, const int& sign, const int& m_code);
     double _get_s_values_type_d(const u_int8_t& brc, const u_int16_t& threshold_id, const int& sign, const int& m_code);
 
-    int _set_quad_type_d(QUAD& component, int& bit_index);
-    int _set_quad_type_c(QUAD& component, int& bit_index);
-    int _set_quad_types_a_and_b(QUAD& component, int& bit_index);
+    void _set_quad_type_d(QUAD& component, int& bit_index);
+    void _set_quad_type_c(QUAD& component, int& bit_index);
+    void _set_quad_types_a_and_b(QUAD& component, int& bit_index);
 
     vector<complex<double>> _get_complex_samples_type_d(QUAD& IE, QUAD& IO, QUAD& QE, QUAD& QO);
     vector<complex<double>> _get_complex_samples_type_c(QUAD& IE, QUAD& IO, QUAD& QE, QUAD& QO);
