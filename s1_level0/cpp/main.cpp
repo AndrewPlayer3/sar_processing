@@ -30,20 +30,45 @@ void complexer(vector<L0Packet>& packets, vector<vector<complex<double>>>& compl
 }
 
 
+void omp_test(ifstream& data)
+{
+    double runtime  = 0.0;
+
+    vector<L0Packet> packets = get_all_packets(data, false, 10);
+
+    int num_packets = packets.size();
+
+    auto start = chrono::high_resolution_clock::now();
+
+    #pragma omp parallel for
+    for (int i = 0; i < num_packets; i++)
+    {
+        packets[i].get_complex_samples();
+    }
+
+    auto end = chrono::high_resolution_clock::now();
+
+    chrono::duration<double> difference = end - start;
+
+    cout << "Decoded " << num_packets << " packets in " << difference.count() << "s." << endl;
+}
+
+
 void thread_test(ifstream& data)
 {
-
-    int num_packets = 10000;
     double runtime  = 0.0;
 
     vector<L0Packet> packets = get_all_packets(data, false, 0);
 
+    int num_packets = 50000;
+
     auto start = chrono::high_resolution_clock::now();
 
-    vector<L0Packet> t1_packets = {packets.begin()       , packets.begin() + 2500};
-    vector<L0Packet> t2_packets = {packets.begin() + 2500, packets.begin() + 5000};
-    vector<L0Packet> t3_packets = {packets.begin() + 5000, packets.begin() + 7500};
-    vector<L0Packet> t4_packets = {packets.begin() + 7500, packets.begin() + 10000};
+
+    vector<L0Packet> t1_packets = {packets.begin()        , packets.begin() + 12500};
+    vector<L0Packet> t2_packets = {packets.begin() + 12500, packets.begin() + 25000};
+    vector<L0Packet> t3_packets = {packets.begin() + 25000, packets.begin() + 37500};
+    vector<L0Packet> t4_packets = {packets.begin() + 37500, packets.begin() + 50000};
 
     vector<vector<complex<double>>> t1_samples = {};
     vector<vector<complex<double>>> t2_samples = {};
@@ -195,6 +220,21 @@ int main(int argc, char* argv[])
             throw runtime_error("Unable to open: " + filename);
         }
         thread_test(data);
+    }
+    else if (command == "omp_test")
+    {
+        if(argv[2] == __null) 
+        {
+            cout << "Please enter the filename." << endl;
+            return 1;
+        }
+        string filename = string(argv[2]);
+        std::ifstream data(filename, std::ios::binary);
+        if (!data.is_open()) 
+        {
+            throw runtime_error("Unable to open: " + filename);
+        }
+        omp_test(data);
     }
     else if (command == "nth_complex_samples")
     {
