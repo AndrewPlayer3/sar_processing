@@ -78,6 +78,11 @@ private:
     H_CODE _get_h_code(const u_int8_t& brc, int& bit_index, const bool& is_last_block);
     double _get_type_d_s_value(const u_int8_t& brc, const u_int16_t& threshold_id, const int& sign, const int& m_code);
 
+    H_CODE _get_h_code_type_c(int& bit_index, const bool& is_last_block);
+    double _get_type_c_s_value(const u_int16_t& threshold_id, const int& sign, const int& m_code);
+    int _set_quad_type_c(QUAD& component, int& bit_index);
+    vector<complex<double>> _decode_type_c();
+    vector<complex<double>> _get_type_c_complex_samples(QUAD& IE, QUAD& IO, QUAD& QE, QUAD& QO);
 
 public:
     L0Packet(){}    

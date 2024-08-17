@@ -261,6 +261,10 @@ const vector<vector<unordered_map<u_int16_t, u_int8_t>>> HUFFMAN_CODINGS_WITH_LE
 };
 
 
+
+// Table 5.2-1 from Page 78
+const unordered_map<int, int> BAQ_MODE_TO_THIDX = {{3, 3}, {4, 5}, {5, 10}};
+
 // Table 5.2-1 from Page 78
 const vector<u_int16_t> BRC_TO_THIDX = {3, 3, 5, 6, 8};
 

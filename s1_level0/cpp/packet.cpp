@@ -263,7 +263,7 @@ void L0Packet::_decode()
     }
     else if (_data_format == 'C') 
     {
-        throw runtime_error("Packet is Type C. Decoding is not supported.");
+        _complex_samples = _decode_type_c();
     }
     else 
     {
@@ -287,6 +287,247 @@ int L0Packet::_get_next_word_boundary(const int& bit_index)
     int offset = bit_index % WORD_SIZE;
     if (offset == 0) return bit_index;
     return bit_index + (WORD_SIZE - offset);
+}
+
+
+/***********************************************************************/
+
+/* TYPE A AND B PACKETS                                                */
+
+/***********************************************************************/
+
+
+vector<complex<double>> L0Packet::_get_types_a_and_b_complex_samples(
+    QUAD& IE,
+    QUAD& IO,
+    QUAD& QE,
+    QUAD& QO
+) {
+    auto get_s_value = [](u_int8_t sign, u_int16_t m_code) {return pow(-1, sign) * m_code;};
+
+    int num_s_codes = IE.signs[0].size();
+
+    vector<vector<double>> s_values;
+
+    for(int i = 0; i < num_s_codes; i++)
+    {
+        s_values.push_back({
+            get_s_value(IE.signs[0][i], IE.m_codes[0][i]),
+            get_s_value(IO.signs[0][i], IO.m_codes[0][i]),
+            get_s_value(QE.signs[0][i], QE.m_codes[0][i]),
+            get_s_value(QO.signs[0][i], QO.m_codes[0][i])
+        });
+    }
+
+    vector<complex<double>> complex_samples;
+
+    for (int i = 1; i <= _num_quads; i++)
+    {
+        vector<double> components = s_values[i-1];
+
+        complex_samples.push_back(complex<double>(components[0], components[2]));
+        complex_samples.push_back(complex<double>(components[1], components[3]));
+    }
+
+    return complex_samples;
+}
+
+
+int L0Packet::_set_a_and_b_quad(QUAD& component, int& bit_index)
+{
+    int num_bits = 0;
+    int sign_bits = 1;
+    int m_code_bits = 9;
+
+    H_CODE h_code;
+
+    for (int i = 0; i < _num_quads; i++)
+    {
+        u_int8_t sign   = read_n_bits(_raw_user_data, bit_index, sign_bits);
+        bit_index += sign_bits;
+        
+        u_int16_t m_code = read_n_bits(_raw_user_data, bit_index, m_code_bits);
+        bit_index += m_code_bits;
+
+        h_code.signs.push_back(sign);
+        h_code.m_codes.push_back(m_code);
+    }
+
+    component.signs.push_back(h_code.signs);
+    component.m_codes.push_back(h_code.m_codes);
+
+    return _get_next_word_boundary(bit_index);
+}
+
+
+vector<complex<double>> L0Packet::_decode_types_a_and_b()
+{
+    QUAD IE = QUAD("IE");
+    QUAD IO = QUAD("IO");
+    QUAD QE = QUAD("QE");
+    QUAD QO = QUAD("QO");
+
+    int bit_index = 0;
+
+    bit_index = _set_a_and_b_quad(IE, bit_index);
+    bit_index = _set_a_and_b_quad(IO, bit_index);
+    bit_index = _set_a_and_b_quad(QE, bit_index);
+    bit_index = _set_a_and_b_quad(QO, bit_index);
+
+    vector<complex<double>> complex_samples = _get_types_a_and_b_complex_samples(
+        IE,
+        IO,
+        QE,
+        QO
+    );
+
+    return complex_samples;
+}
+
+
+/***********************************************************************/
+
+/* TYPE C PACKETS                                                      */
+
+/***********************************************************************/
+
+
+// TODO: Type C and D packets can share this function by passing the brc/threshold index,
+//       instead of directly passing the brc and threshold values.
+double L0Packet::_get_type_c_s_value(
+    const u_int16_t& threshold_index,
+    const int& sign,
+    const int& m_code
+) {
+        if (threshold_index <= BAQ_MODE_TO_THIDX.at(_baq_mode))
+        {
+            if      (m_code <  3) return pow(-1, sign) * m_code;
+            else if (m_code == 3) return pow(-1, sign) * SIMPLE_RECONSTRUCTION_METHOD[1][_baq_mode][threshold_index];
+            else throw runtime_error("Invalid m_code in s_value generation.");
+        }
+        double sigma_factor              = THIDX_TO_SF_ARRAY[threshold_index];
+        double norm_reconstruction_level = NORMALIZED_RECONSTRUCTION_LEVELS[1][_baq_mode][m_code];
+        return pow(-1.0, sign) * norm_reconstruction_level * sigma_factor;
+}
+
+
+vector<complex<double>> L0Packet::_get_type_c_complex_samples(
+    QUAD& IE,
+    QUAD& IO,
+    QUAD& QE,
+    QUAD& QO
+) {
+    vector<vector<double>> s_values;
+
+    for (int block_id = 0; block_id < _num_baq_blocks; block_id++)
+    {
+        bool is_last_block = (block_id == _num_baq_blocks - 1);
+        int  block_length  = is_last_block ? _num_quads - (128 * (_num_baq_blocks - 1)) : 128;
+        int  threshold_id  = _thresholds[block_id];
+
+        for (int s_id = 0; s_id < block_length; s_id++)
+        {
+            s_values.push_back({
+                _get_type_c_s_value(threshold_id, IE.signs[block_id][s_id], IE.m_codes[block_id][s_id]),
+                _get_type_c_s_value(threshold_id, IO.signs[block_id][s_id], IO.m_codes[block_id][s_id]),
+                _get_type_c_s_value(threshold_id, QE.signs[block_id][s_id], QE.m_codes[block_id][s_id]),
+                _get_type_c_s_value(threshold_id, QO.signs[block_id][s_id], QO.m_codes[block_id][s_id]),
+            });
+        }
+    }
+    vector<complex<double>> complex_samples;
+
+    for (int i = 1; i <= _num_quads; i++)
+    {
+        vector<double> components = s_values[i-1];
+
+        complex_samples.push_back(complex<double>(components[0], components[2]));
+        complex_samples.push_back(complex<double>(components[1], components[3]));
+    }
+
+    return complex_samples;
+}
+
+
+H_CODE L0Packet::_get_h_code_type_c(int& bit_index, const bool& is_last_block)
+{
+        H_CODE h_code;
+
+        int num_codes = is_last_block ? _num_quads - (128 * (_num_baq_blocks - 1)) : 128;
+        for (int i = 0; i < num_codes; i++)
+        {
+            int start_bit_index = bit_index;
+            int sign   = read_n_bits(_raw_user_data, bit_index, 1);
+            bit_index += 1;
+
+            int m_code = read_n_bits(_raw_user_data, bit_index, _baq_mode);
+            bit_index += _baq_mode;
+
+            h_code.signs.push_back(sign);
+            h_code.m_codes.push_back(m_code);                
+
+            h_code.bits_read += (bit_index - start_bit_index);
+        }
+
+        return h_code;
+}
+
+
+int L0Packet::_set_quad_type_c(QUAD& component, int& bit_index)
+{
+    u_int16_t threshold;
+
+    int threshold_bits = 8;       
+    int s_code_bits    = _baq_mode;
+
+    for (int i = 0; i < _num_baq_blocks; i++)
+    {
+        bool is_qe = (component.key == "QE");
+        bool is_last_block = (i == _num_baq_blocks - 1);
+        if (is_qe)
+        {
+            threshold = read_n_bits(_raw_user_data, bit_index, threshold_bits);
+            if (threshold > 256)
+            {
+                throw runtime_error("Threshold Index is invalid.");
+            }
+            _thresholds.push_back(threshold);
+            bit_index += threshold_bits;
+        }
+
+        H_CODE h_code = _get_h_code_type_c(bit_index, is_last_block);
+
+        component.signs.push_back(h_code.signs);
+        component.m_codes.push_back(h_code.m_codes);
+        component.bits_read += h_code.bits_read + (is_qe ? threshold_bits : 0);
+    }
+
+    return _get_next_word_boundary(bit_index);
+}
+
+
+vector<complex<double>> L0Packet::_decode_type_c()
+{
+    QUAD IE = QUAD("IE");
+    QUAD IO = QUAD("IO");
+    QUAD QE = QUAD("QE");
+    QUAD QO = QUAD("QO");
+
+    int bit_index = 0;
+
+    bit_index = _set_quad_type_c(IE, bit_index);
+    bit_index = _set_quad_type_c(IO, bit_index);
+    bit_index = _set_quad_type_c(QE, bit_index);
+    bit_index = _set_quad_type_c(QO, bit_index);
+
+    vector<complex<double>> complex_samples = _get_type_c_complex_samples(
+        IE,
+        IO,
+        QE,
+        QO
+    );
+
+    return complex_samples;
 }
 
 
@@ -452,101 +693,6 @@ vector<complex<double>> L0Packet::_decode_type_d()
     bit_index = _set_quad(QO, bit_index);
 
     vector<complex<double>> complex_samples = _get_type_d_complex_samples(
-        IE,
-        IO,
-        QE,
-        QO
-    );
-
-    return complex_samples;
-}
-
-
-/***********************************************************************/
-
-/* TYPE A AND B PACKETS                                                */
-
-/***********************************************************************/
-
-
-vector<complex<double>> L0Packet::_get_types_a_and_b_complex_samples(
-    QUAD& IE,
-    QUAD& IO,
-    QUAD& QE,
-    QUAD& QO
-) {
-    auto get_s_value = [](u_int8_t sign, u_int16_t m_code) {return pow(-1, sign) * m_code;};
-
-    int num_s_codes = IE.signs[0].size();
-
-    vector<vector<double>> s_values;
-
-    for(int i = 0; i < num_s_codes; i++)
-    {
-        s_values.push_back({
-            get_s_value(IE.signs[0][i], IE.m_codes[0][i]),
-            get_s_value(IO.signs[0][i], IO.m_codes[0][i]),
-            get_s_value(QE.signs[0][i], QE.m_codes[0][i]),
-            get_s_value(QO.signs[0][i], QO.m_codes[0][i])
-        });
-    }
-
-    vector<complex<double>> complex_samples;
-
-    for (int i = 1; i <= _num_quads; i++)
-    {
-        vector<double> components = s_values[i-1];
-
-        complex_samples.push_back(complex<double>(components[0], components[2]));
-        complex_samples.push_back(complex<double>(components[1], components[3]));
-    }
-
-    return complex_samples;
-}
-
-
-int L0Packet::_set_a_and_b_quad(QUAD& component, int& bit_index)
-{
-    int num_bits = 0;
-    int sign_bits = 1;
-    int m_code_bits = 9;
-
-    H_CODE h_code;
-
-    for (int i = 0; i < _num_quads; i++)
-    {
-        u_int8_t sign   = read_n_bits(_raw_user_data, bit_index, sign_bits);
-        bit_index += sign_bits;
-        
-        u_int16_t m_code = read_n_bits(_raw_user_data, bit_index, m_code_bits);
-        bit_index += m_code_bits;
-
-        h_code.signs.push_back(sign);
-        h_code.m_codes.push_back(m_code);
-    }
-
-    component.signs.push_back(h_code.signs);
-    component.m_codes.push_back(h_code.m_codes);
-
-    return _get_next_word_boundary(bit_index);
-}
-
-
-vector<complex<double>> L0Packet::_decode_types_a_and_b()
-{
-    QUAD IE = QUAD("IE");
-    QUAD IO = QUAD("IO");
-    QUAD QE = QUAD("QE");
-    QUAD QO = QUAD("QO");
-
-    int bit_index = 0;
-
-    bit_index = _set_a_and_b_quad(IE, bit_index);
-    bit_index = _set_a_and_b_quad(IO, bit_index);
-    bit_index = _set_a_and_b_quad(QE, bit_index);
-    bit_index = _set_a_and_b_quad(QO, bit_index);
-
-    vector<complex<double>> complex_samples = _get_types_a_and_b_complex_samples(
         IE,
         IO,
         QE,
