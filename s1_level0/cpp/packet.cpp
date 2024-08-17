@@ -204,16 +204,6 @@ void L0Packet::print_pulse_info()
 }
 
 
-vector<complex<double>> L0Packet::get_complex_samples()
-{
-    if (!_complex_samples_set_flag)
-    {
-        _set_complex_samples();
-    }
-    return _complex_samples;
-}
-
-
 void L0Packet::_set_data_format() 
 {
     unordered_set<int> type_c_modes = { 3,  4,  5};
@@ -245,6 +235,50 @@ void L0Packet::_set_data_format()
 }
 
 
+/***********************************************************************/
+
+/* DECODING COMPLEX SAMPLES                                            */
+
+/***********************************************************************/
+
+
+vector<complex<double>> L0Packet::get_complex_samples()
+{
+    if (!_complex_samples_set_flag)
+    {
+        _set_complex_samples();
+    }
+    return _complex_samples;
+}
+
+
+void L0Packet::_decode() 
+{
+    if (_data_format == 'A' || _data_format == 'B') 
+    {
+        _complex_samples =  _decode_types_a_and_b();
+    }
+    else if (_data_format == 'C') 
+    {
+        throw runtime_error("Packet is Type C. Decoding is not supported.");
+    }
+    else 
+    {
+        _complex_samples = _decode_type_d();
+    }
+}
+
+
+void L0Packet::_set_complex_samples()
+{
+    _decode();
+    _complex_samples_set_flag = true;
+
+    // swapping _raw_user_data with a blank vector to free memory
+    vector<u_int8_t>().swap(_raw_user_data);
+}
+
+
 int L0Packet::_get_next_word_boundary(const int& bit_index)
 {
     int offset = bit_index % WORD_SIZE;
@@ -253,11 +287,11 @@ int L0Packet::_get_next_word_boundary(const int& bit_index)
 }
 
 
-vector<complex<double>> L0Packet::_decode_types_a_and_b() 
-{
-    vector<complex<double>> complex_samples;
-    return complex_samples;
-}
+/***********************************************************************/
+
+/* TYPE D PACKETS                                                      */
+
+/***********************************************************************/
 
 
 double L0Packet::_get_type_d_s_value(
@@ -269,7 +303,7 @@ double L0Packet::_get_type_d_s_value(
     if (threshold_index <= BRC_TO_THIDX[brc])
     {
         int m_code_comparison_flag = BRC_TO_M_CODE[brc];
-        
+
         if (m_code < m_code_comparison_flag)
         {
             return pow(-1.0, sign) * m_code;
@@ -295,40 +329,21 @@ vector<complex<double>> L0Packet::_get_type_d_complex_samples(
 ) {
     vector<vector<double>> s_values;
 
-    for (int block_index = 0; block_index < _num_baq_blocks; block_index++)
+    for (int block_id = 0; block_id < _num_baq_blocks; block_id++)
     {
-        bool is_last_block   = (block_index == _num_baq_blocks - 1);
-        int  block_length    = is_last_block ? _num_quads - (128 * (_num_baq_blocks - 1)) : 128;
-        int  brc             = _brc[block_index];
-        int  threshold_index = _thresholds[block_index];
+        bool is_last_block = (block_id == _num_baq_blocks - 1);
+        int  block_length  = is_last_block ? _num_quads - (128 * (_num_baq_blocks - 1)) : 128;
+        int  brc           = _brc[block_id];
+        int  threshold_id  = _thresholds[block_id];
 
-        for (int s_code_index = 0; s_code_index < block_length; s_code_index++)
+        for (int s_id = 0; s_id < block_length; s_id++)
         {
-            double ie = _get_type_d_s_value(
-                brc,
-                threshold_index,
-                IE.signs[block_index][s_code_index],
-                IE.m_codes[block_index][s_code_index]
-            );
-            double io = _get_type_d_s_value(
-                brc,
-                threshold_index,
-                IO.signs[block_index][s_code_index],
-                IO.m_codes[block_index][s_code_index]
-            );
-            double qe = _get_type_d_s_value(
-                brc,
-                threshold_index,
-                QE.signs[block_index][s_code_index],
-                QE.m_codes[block_index][s_code_index]
-            );
-            double qo = _get_type_d_s_value(
-                brc,
-                threshold_index,
-                QO.signs[block_index][s_code_index],
-                QO.m_codes[block_index][s_code_index]
-            );
-            s_values.push_back(vector<double>({ie, io, qe, qo}));
+            s_values.push_back({
+                _get_type_d_s_value(brc, threshold_id, IE.signs[block_id][s_id], IE.m_codes[block_id][s_id]),
+                _get_type_d_s_value(brc, threshold_id, IO.signs[block_id][s_id], IO.m_codes[block_id][s_id]),
+                _get_type_d_s_value(brc, threshold_id, QE.signs[block_id][s_id], QE.m_codes[block_id][s_id]),
+                _get_type_d_s_value(brc, threshold_id, QO.signs[block_id][s_id], QO.m_codes[block_id][s_id]),
+            });
         }
     }
     vector<complex<double>> complex_samples;
@@ -444,28 +459,96 @@ vector<complex<double>> L0Packet::_decode_type_d()
 }
 
 
-vector<complex<double>>L0Packet:: _decode() 
-{
-    if (_data_format == 'A' || _data_format == 'B') 
+/***********************************************************************/
+
+/* TYPE A AND B PACKETS                                                */
+
+/***********************************************************************/
+
+
+vector<complex<double>> L0Packet::_get_types_a_and_b_complex_samples(
+    QUAD& IE,
+    QUAD& IO,
+    QUAD& QE,
+    QUAD& QO
+) {
+    auto get_s_value = [](u_int8_t sign, u_int16_t m_code) {return pow(-1, sign) * m_code;};
+
+    int num_s_codes = IE.signs[0].size();
+
+    vector<vector<double>> s_values;
+
+    for(int i = 0; i < num_s_codes; i++)
     {
-        return _decode_types_a_and_b();
+        s_values.push_back({
+            get_s_value(IE.signs[0][i], IE.m_codes[0][i]),
+            get_s_value(IO.signs[0][i], IO.m_codes[0][i]),
+            get_s_value(QE.signs[0][i], QE.m_codes[0][i]),
+            get_s_value(QO.signs[0][i], QO.m_codes[0][i])
+        });
     }
-    else if (_data_format == 'C') 
+
+    vector<complex<double>> complex_samples;
+
+    for (int i = 1; i <= _num_quads; i++)
     {
-        throw runtime_error("Packet is Type C. Decoding is not supported.");
+        vector<double> components = s_values[i-1];
+
+        complex_samples.push_back(complex<double>(components[0], components[2]));
+        complex_samples.push_back(complex<double>(components[1], components[3]));
     }
-    else 
-    {
-        return _decode_type_d();
-    }
+
+    return complex_samples;
 }
 
 
-void L0Packet::_set_complex_samples()
+int L0Packet::_set_a_and_b_quad(QUAD& component, int& bit_index)
 {
-    _complex_samples = _decode();
-    _complex_samples_set_flag = true;
+    int num_bits = 0;
+    int sign_bits = 1;
+    int m_code_bits = 9;
 
-    // swapping _raw_user_data with a blank vector to free memory
-    vector<u_int8_t>().swap(_raw_user_data);
+    H_CODE h_code;
+
+    for (int i = 0; i < _num_quads; i++)
+    {
+        u_int8_t sign   = read_n_bits(_raw_user_data, bit_index, sign_bits);
+        bit_index += sign_bits;
+        
+        u_int16_t m_code = read_n_bits(_raw_user_data, bit_index, m_code_bits);
+        bit_index += m_code_bits;
+
+        h_code.signs.push_back(sign);
+        h_code.m_codes.push_back(m_code);
+    }
+
+    component.signs.push_back(h_code.signs);
+    component.m_codes.push_back(h_code.m_codes);
+
+    return _get_next_word_boundary(bit_index);
+}
+
+
+vector<complex<double>> L0Packet::_decode_types_a_and_b()
+{
+    QUAD IE = QUAD("IE");
+    QUAD IO = QUAD("IO");
+    QUAD QE = QUAD("QE");
+    QUAD QO = QUAD("QO");
+
+    int bit_index = 0;
+
+    bit_index = _set_a_and_b_quad(IE, bit_index);
+    bit_index = _set_a_and_b_quad(IO, bit_index);
+    bit_index = _set_a_and_b_quad(QE, bit_index);
+    bit_index = _set_a_and_b_quad(QO, bit_index);
+
+    vector<complex<double>> complex_samples = _get_types_a_and_b_complex_samples(
+        IE,
+        IO,
+        QE,
+        QO
+    );
+
+    return complex_samples;
 }

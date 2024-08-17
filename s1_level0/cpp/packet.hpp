@@ -48,38 +48,35 @@ private:
     int _user_data_length;
     int _bit_index;
 
-    char _data_format;
-
     bool _is_empty = true;
-    bool _complex_samples_set_flag = false;
+
+    char _data_format;
+    void _set_data_format();
+
+    /*******************/
+    /* PACKET DECODING */
+    /*******************/
 
     vector<int> _brc = {};
     vector<int> _thresholds = {};
     vector<complex<double>> _complex_samples;
 
-    int _get_next_word_boundary(const int& bit_index);
+    bool _complex_samples_set_flag = false;
 
-    double _get_type_d_s_value(
-        const u_int8_t& brc,
-        const u_int16_t& threshold_index,
-        const int& sign,
-        const int& m_code
-    );
+    void _set_complex_samples();
+    void _decode();
+    int  _get_next_word_boundary(const int& bit_index);
 
-    H_CODE _get_h_code(
-        const u_int8_t& brc,
-        int& bit_index,
-        const bool& is_last_block
-    );
-
-    vector<complex<double>> _get_type_d_complex_samples(QUAD& IE, QUAD& IO, QUAD& QE, QUAD& QO);
-    vector<complex<double>> _decode_types_a_and_b();
     vector<complex<double>> _decode_type_d();
-    vector<complex<double>> _decode();
+    vector<complex<double>> _decode_types_a_and_b();
+    vector<complex<double>> _get_type_d_complex_samples(QUAD& IE, QUAD& IO, QUAD& QE, QUAD& QO);
+    vector<complex<double>> _get_types_a_and_b_complex_samples(QUAD& IE, QUAD& IO, QUAD& QE, QUAD& QO);
 
     int _set_quad(QUAD& component, int& bit_index);
-    void _set_data_format();
-    void _set_complex_samples();
+    int _set_a_and_b_quad(QUAD& component, int& bit_index);
+
+    H_CODE _get_h_code(const u_int8_t& brc, int& bit_index, const bool& is_last_block);
+    double _get_type_d_s_value(const u_int8_t& brc, const u_int16_t& threshold_id, const int& sign, const int& m_code);
 
 
 public:
