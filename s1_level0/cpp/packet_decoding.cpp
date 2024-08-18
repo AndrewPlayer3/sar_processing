@@ -1,8 +1,19 @@
+/*
+By: Andrew Player
+Name: packet_decoding.cpp
+Description: Funtions for reading packets, index info, and annotation info from the Level-0 dat files. 
+             See "SAR Space Packet Protocol Data Unit", for more information on the packet specification:
+             https://sentinels.copernicus.eu/documents/247904/2142675/Sentinel-1-SAR-Space-Packet-Protocol-Data-Unit.pdf
+             For additional information on Level-0 product decoding, see:
+             https://sentinel.esa.int/documents/247904/0/Sentinel-1-Level-0-Data-Decoding-Package.pdf/a8742c59-4914-40c4-8309-c77515649f17
+*/
+
 #include "packet_decoding.hpp"
 
 using namespace std;
 
 
+/* Returns the header dictionary with the values cast to integers with no calculations */
 unordered_map<string, int> get_header_dict(
     const vector<u_int8_t>&  bytes,
     const vector<int>&       bit_lengths,
@@ -23,6 +34,7 @@ unordered_map<string, int> get_header_dict(
 }
 
 
+/* Decode the next packet within the data stream */
 L0Packet decode_next_packet(ifstream& data)
 {
     vector<u_int8_t> primary_bytes = read_bytes(data, 6);
@@ -56,6 +68,7 @@ L0Packet decode_next_packet(ifstream& data)
 }
 
 
+/* Returns a vector of maps containing the index records */
 vector<unordered_map<string, int>> index_decoder(ifstream& data)
 {
     int record_size = 36;
@@ -88,6 +101,7 @@ vector<unordered_map<string, int>> index_decoder(ifstream& data)
 }
 
 
+/* Returns a vector of maps containing the annotation records */
 vector<unordered_map<string, int>> annotation_decoder(ifstream& data)
 {
     int record_size = 26;
@@ -132,6 +146,7 @@ vector<unordered_map<string, int>> annotation_decoder(ifstream& data)
 }
 
 
+/* Returns the time in seconds that it takes to decode the complex samples of num_packets packets */
 double time_packet_generation(ifstream& data, const int& num_packets, const bool& log, const int& log_interval)
 {
     double total_runtime = 0.0;
@@ -177,6 +192,7 @@ double time_packet_generation(ifstream& data, const int& num_packets, const bool
 }
 
 
+/* Returns a vector containing all of the packets left in a data stream */
 vector<L0Packet> get_all_packets(ifstream& data, const bool& log, const int& log_interval)
 {
     vector<L0Packet> packets;
@@ -216,6 +232,7 @@ vector<L0Packet> get_all_packets(ifstream& data, const bool& log, const int& log
 }
 
 
+/* Returns a vector containing the n first packets left in a data stream */
 vector<L0Packet> get_n_packets(ifstream& data, const int& n, const bool& log, const int& log_interval)
 {
     vector<L0Packet> packets;

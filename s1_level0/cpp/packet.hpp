@@ -1,3 +1,13 @@
+/*
+By: Andrew Player
+Name: packet.hpp
+Description: L0Packet class for storing and decoding Level-0 Packets in a convinient and easy to use manner. 
+             See "SAR Space Packet Protocol Data Unit", for more information on the packet specification:
+             https://sentinels.copernicus.eu/documents/247904/2142675/Sentinel-1-SAR-Space-Packet-Protocol-Data-Unit.pdf
+             For additional information on Level-0 product decoding, see:
+             https://sentinel.esa.int/documents/247904/0/Sentinel-1-Level-0-Data-Decoding-Package.pdf/a8742c59-4914-40c4-8309-c77515649f17
+*/
+
 #pragma once
 
 #include <iostream>
@@ -11,6 +21,7 @@
 using namespace std;
 
 
+/* H_CODE or S_CODE struct representing one element of a quadrature */
 struct H_CODE {
     vector<u_int8_t> signs;
     vector<u_int16_t> m_codes;
@@ -19,6 +30,7 @@ struct H_CODE {
 };
 
 
+/* Quadrature struct representing one of the IE, IO, QE, or QO quads */
 struct QUAD {
     vector<vector<u_int8_t>> signs;
     vector<vector<u_int16_t>> m_codes;
@@ -33,6 +45,7 @@ struct QUAD {
 };
 
 
+/* Class for Sentinel-1 Level-0 Packets with decoding functionality for all packet types. */
 class L0Packet 
 {
 private:
@@ -54,9 +67,11 @@ private:
 
     void _set_data_format();
 
-    /*******************/
-    /* PACKET DECODING */
-    /*******************/
+
+    /**********************************/
+    /* DECODING COMPLEX SAMPLES       */
+    /* PAGES 61 -> 85                 */
+    /**********************************/
 
     vector<int> _brc = {};
     vector<int> _thresholds = {};

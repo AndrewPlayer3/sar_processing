@@ -1,3 +1,13 @@
+/*
+By: Andrew Player
+Name: main.cpp
+Description: Main function with random command-line arguments for testing purposes. 
+             See "SAR Space Packet Protocol Data Unit", for more information on the packet specification:
+             https://sentinels.copernicus.eu/documents/247904/2142675/Sentinel-1-SAR-Space-Packet-Protocol-Data-Unit.pdf
+             For additional information on Level-0 product decoding, see:
+             https://sentinel.esa.int/documents/247904/0/Sentinel-1-Level-0-Data-Decoding-Package.pdf/a8742c59-4914-40c4-8309-c77515649f17
+*/
+
 #include <thread>
 
 #include "packet_decoding.hpp"
@@ -5,8 +15,21 @@
 using namespace std;
 
 
-void omp_test(ifstream& data)
+ifstream open_file(string filename)
 {
+    std::ifstream data(filename, std::ios::binary);
+    if (!data.is_open()) 
+    {
+        throw runtime_error("Unable to open: " + filename);
+    }
+    return data;
+}
+
+
+void omp_test(string filename)
+{
+    ifstream data = open_file(filename);
+
     vector<L0Packet> packets = get_all_packets(data, false, 10);
 
     const int num_packets = packets.size();
@@ -21,9 +44,7 @@ void omp_test(ifstream& data)
         complex_samples[i] = packets[i].get_complex_samples();
     }
 
-    chrono::time_point end = chrono::high_resolution_clock::now();
-
-    chrono::duration<double> difference = end - start;
+    chrono::duration<double> difference = chrono::high_resolution_clock::now() - start;
 
     cout << "Decoded " << num_packets << " packets in " << difference.count() << "s." << endl;
 }
@@ -43,8 +64,10 @@ void thread_runner(
 }
 
 
-void thread_test(ifstream& data)
+void thread_test(string filename)
 {
+    ifstream data = open_file(filename);
+    
     vector<L0Packet> packets = get_all_packets(data, false, 0);
     vector<thread>   threads;
 
@@ -75,9 +98,7 @@ void thread_test(ifstream& data)
         if (thread.joinable()) thread.join();
     }
 
-    chrono::time_point end = chrono::high_resolution_clock::now();
-
-    chrono::duration<double> difference = end - start;
+    chrono::duration<double> difference = chrono::high_resolution_clock::now() - start;
 
     cout << "Decoded " << num_packets << " packets in " << difference.count() << "s." << endl;
 }
@@ -90,11 +111,8 @@ void print_packet_at_index(
     bool pulse_info = false,
     bool modes = false
 ) {
-    std::ifstream data(filename, std::ios::binary);
-    if (!data.is_open()) 
-    {
-        throw runtime_error("Unable to open: " + filename);
-    }
+    ifstream data = open_file(filename);
+    
     vector<L0Packet> packets = get_n_packets(data, index + 1, false, 0);
 
     if (index >= packets.size())
@@ -123,59 +141,45 @@ int main(int argc, char* argv[])
 
     string command = string(argv[1]);
 
-    if (command == "print_nth_headers")
+    if (command == "print_headers")
     {
         if(argv[2] == __null || argv[3] == __null) 
         {
             cout << "Please enter a packet index and filename." << endl;
             return 1;
         }
-        string filename = string(argv[3]);
-        print_packet_at_index(filename, stoi(argv[2]));
+        print_packet_at_index(string(argv[3]), stoi(argv[2]));
     }
-    else if (command == "time_n")
+    else if (command == "time")
     {
         if(argv[2] == __null || argv[3] == __null) 
         {
             cout << "Please enter the packet count to time and a filename." << endl;
             return 1;
         }
+        ifstream data = open_file(string(argv[3]));
 
-        string filename = string(argv[3]);
-        ifstream data(filename, ios::binary);
-        if (!data.is_open()) 
-        {
-            throw runtime_error("Unable to open: " + filename);
-        }
-        int n = stoi(argv[2]);
+        double runtime = time_packet_generation(data, stoi(argv[2]), false, 0);
 
-        double runtime = time_packet_generation(data, n, false, 0);
-
-        cout << "Decoded " << n << " packets in " << runtime << "s." << endl;
+        cout << "Decoded " << stoi(argv[2]) << " packets in " << runtime << "s." << endl;
     }
-    else if (command == "print_nth_pulse_info")
+    else if (command == "print_pulse_info")
     {
         if(argv[2] == __null || argv[3] == __null) 
         {
             cout << "Please enter the packet index and filename." << endl;
             return 1;
         }
-        int n = stoi(argv[2]);
-
-        string filename = string(argv[3]);
-        print_packet_at_index(filename, n, false, true);
+        print_packet_at_index(string(argv[3]), stoi(argv[2]), false, true);
     }
-    else if (command == "print_nth_modes")
+    else if (command == "print_modes")
     {
         if(argv[2] == __null || argv[3] == __null) 
         {
             cout << "Please enter the packet index and filename." << endl;
             return 1;
         }
-        int n = stoi(argv[2]);
-
-        string filename = string(argv[3]);
-        print_packet_at_index(filename, n, false, false, true);
+        print_packet_at_index(string(argv[3]), stoi(argv[2]), false, false, true);
     }
     else if (command == "thread_test")
     {
@@ -184,13 +188,7 @@ int main(int argc, char* argv[])
             cout << "Please enter the filename." << endl;
             return 1;
         }
-        string filename = string(argv[2]);
-        std::ifstream data(filename, std::ios::binary);
-        if (!data.is_open()) 
-        {
-            throw runtime_error("Unable to open: " + filename);
-        }
-        thread_test(data);
+        thread_test(string(argv[2]));
     }
     else if (command == "omp_test")
     {
@@ -199,78 +197,57 @@ int main(int argc, char* argv[])
             cout << "Please enter the filename." << endl;
             return 1;
         }
-        string filename = string(argv[2]);
-        std::ifstream data(filename, std::ios::binary);
-        if (!data.is_open()) 
-        {
-            throw runtime_error("Unable to open: " + filename);
-        }
-        omp_test(data);
+        omp_test(string(argv[2]));
     }
-    else if (command == "nth_complex_samples")
+    else if (command == "print_complex_samples")
     {
         if(argv[2] == __null || argv[3] == __null) 
         {
             cout << "Please enter the packet index and filename." << endl;
             return 1;
         }
-        int n = stoi(argv[2]);
-        string filename = string(argv[3]);
-        std::ifstream data(filename, std::ios::binary);
-        if (!data.is_open()) 
-        {
-            throw runtime_error("Unable to open: " + filename);
-        }
-        vector<L0Packet> packets = get_n_packets(data, n + 1, false, 0);
-        vector<complex<double>> complex_samples = packets[n].get_complex_samples();
+        ifstream data = open_file(string(argv[3]));
+
+        vector<L0Packet> packets = get_n_packets(data, stoi(argv[2]) + 1, false, 0);
+
+        vector<complex<double>> complex_samples = packets[stoi(argv[2])].get_complex_samples();
+
         for (complex<double> sample : complex_samples)
         {
             cout << "Complex Value: " << sample << endl;
         }
     }
-    else if (command == "check_packet_types")
+    else if (command == "find_packets_of_type")
     {
-        string filename = string(argv[2]);
-        std::ifstream data(filename, std::ios::binary);
-        if (!data.is_open()) 
-        {
-            throw runtime_error("Unable to open: " + filename);
-        }
+        ifstream data = open_file(string(argv[3]));
+
+        char type = char(argv[2][0]);
+
         vector<L0Packet> packets = get_all_packets(data, false, 0);
+
         for (int i = 0; i < packets.size(); i++)
         {
             L0Packet packet = packets[i];
             char data_format    = packet.get_data_format();
             int  sequence_count = packet.primary_header("packet_sequence_count");
-            if (data_format != 'D')
+            if (data_format == type)
             {
                 cout << "Packet #" << sequence_count << " at index " << i << " is type " << data_format << endl;
             }
         }
     }
-    else if (command == "nth_packet_type")
+    else if (command == "print_packet_type")
     {
-        string filename = string(argv[3]);
-        std::ifstream data(filename, std::ios::binary);
-        if (!data.is_open()) 
-        {
-            throw runtime_error("Unable to open: " + filename);
-        }
-        int n = stoi(argv[2]);
-        vector<L0Packet> packets = get_n_packets(data, n + 1, false, 0);
-        cout << "Packet Type is " << packets[n].get_data_format() << "." << endl;
+        ifstream data = open_file(string(argv[3]));
+
+        vector<L0Packet> packets = get_n_packets(data, stoi(argv[2]) + 1, false, 0);
+
+        cout << "Packet Type is " << packets[stoi(argv[2])].get_data_format() << "." << endl;
     }
     else
     {
         cout << command << " is not a valid command." << endl;
     }
-
-    // g++ -std=c++20 -O3 main.cpp -o main
-    // Decoded single packet in 0.0277048s.
-    // Decoded 100 packets in 1.34044s.
-    // For Python, it was:
-    // Decoded single packet in 0.5140669345855713s.
-    // Decoded 100 packets in 50.56020474433899s.
 
     return 0;
 }

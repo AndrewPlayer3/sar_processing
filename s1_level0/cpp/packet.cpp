@@ -1,42 +1,59 @@
+/*
+By: Andrew Player
+Name: packet.cpp
+Description: L0Packet class for storing and decoding Level-0 Packets in a convinient and easy to use manner. 
+             See "SAR Space Packet Protocol Data Unit", for more information on the packet specification:
+             https://sentinels.copernicus.eu/documents/247904/2142675/Sentinel-1-SAR-Space-Packet-Protocol-Data-Unit.pdf
+             For additional information on Level-0 product decoding, see:
+             https://sentinel.esa.int/documents/247904/0/Sentinel-1-Level-0-Data-Decoding-Package.pdf/a8742c59-4914-40c4-8309-c77515649f17
+*/
+
 #include "packet.hpp"
 
 
+/* Returns the length of the baq blocks in bytes */
 int L0Packet::get_baq_block_length()
-{
+{   
     return 8 * (_secondary_header["baq_block_length"] + 1);
 }
 
 
+/* Returns the PRI in microseconds */
 double L0Packet::get_pri()
 {
     return _secondary_header["pri"] / F_REF;
 }
 
 
+/* Returns the pulse length in microseconds */
 double L0Packet::get_pulse_length()
 {
     return _secondary_header["pulse_length"] / F_REF;
 }
 
 
+/* Returns the sampling window length in microseconds */
 double L0Packet::get_swl()
 {
     return _secondary_header["swl"] / F_REF;
 }
 
 
+/* Returns the start time of the sampling window in the PRI in microseconds */
 double L0Packet::get_swst()
 {
     return _secondary_header["swst"] / F_REF;
 }
 
 
+/* Returns the RX gain in dB */
 double L0Packet::get_rx_gain()
 {
     return -0.5 * _secondary_header["rx_gain"];
 }
 
 
+/* Returns the tx pulse start frequency in MHz */
 double L0Packet::get_start_frequency()
 {
     int sign = _secondary_header["pulse_start_frequency_sign"] == 0 ? -1 : 1;
@@ -48,6 +65,7 @@ double L0Packet::get_start_frequency()
 }
 
 
+/* Returns the linear FM rate at which the chirp frequency changes in MHz/microsecond */
 double L0Packet::get_tx_ramp_rate()
 {
     int sign = _secondary_header["tx_ramp_rate_sign"] == 0 ? -1 : 1;
@@ -57,6 +75,7 @@ double L0Packet::get_tx_ramp_rate()
 }
 
 
+/* Returns the polarization of the tx pulse */
 char L0Packet::get_tx_polarization()
 {
     int pol_code = _secondary_header["polarisation"];
@@ -76,6 +95,7 @@ char L0Packet::get_tx_polarization()
 }
 
 
+/* Returns the rx polarization */
 char L0Packet::get_rx_polarization()
 {
     switch (_secondary_header["rx_channel_id"])
@@ -90,18 +110,21 @@ char L0Packet::get_rx_polarization()
 }
 
 
+/* Returns the parity error status of the SES SSB message */
 string L0Packet::get_error_status()
 {
     return _secondary_header["error_flag"] == 0 ? "nominal" : "ssb_corrupt";
 }
 
 
+/* Returns the measurement, test, or rf characterization mode */
 string L0Packet::get_sensor_mode()
 {
     return ECC_CODE_TO_SENSOR_MODE[_secondary_header["ecc_number"]];
 }
 
 
+/* Returns the type of baq compression */
 string L0Packet::get_baq_mode()
 {
     string baq_mode = unordered_map<int, string>({
@@ -118,6 +141,7 @@ string L0Packet::get_baq_mode()
 }
 
 
+/* Returns the test mode, or measurement mode if not testing */
 string L0Packet::get_test_mode()
 {
     string test_mode = unordered_map<int, string>({
@@ -138,6 +162,7 @@ string L0Packet::get_test_mode()
 }
 
 
+/* Returns the type of signal that is being received */
 string L0Packet::get_signal_type()
 {
     string signal_type = unordered_map<int, string>({
@@ -155,6 +180,7 @@ string L0Packet::get_signal_type()
 }
 
 
+/* Prints the keys and values of the primary header */
 void L0Packet::print_primary_header() 
 {
     for (string key : PRIMARY_HEADER_FIELDS) 
@@ -164,6 +190,7 @@ void L0Packet::print_primary_header()
 }
 
 
+/* Prints the keys and values of the secondary header with no calculations applied */
 void L0Packet::print_secondary_header() 
 {
     for (string key : SECONDARY_HEADER_FIELDS) 
@@ -177,8 +204,10 @@ void L0Packet::print_secondary_header()
 }
 
 
+/* Prints information related to the operating modes */
 void L0Packet::print_modes()
 {
+    cout << "Data Format: "      << get_data_format()      << endl;
     cout << "BAQ Mode: "         << get_baq_mode()         << endl;
     cout << "BAQ Block Length: " << get_baq_block_length() << endl;
     cout << "Test Mode: "        << get_test_mode()        << endl;
@@ -188,6 +217,7 @@ void L0Packet::print_modes()
 }
 
 
+/* Prints the pulse descriptors with the relevant calculations applied */
 void L0Packet::print_pulse_info() 
 {
     int range_decimation = _secondary_header["range_decimation"];
@@ -207,6 +237,7 @@ void L0Packet::print_pulse_info()
 }
 
 
+/* Sets the data format of the packet. The data format determines what type of decoding to do. */
 void L0Packet::_set_data_format() 
 {
     unordered_set<int> type_c_modes = { 3,  4,  5};
@@ -239,12 +270,15 @@ void L0Packet::_set_data_format()
 
 
 /***********************************************************************/
-
+/*                                                                     */
 /* DECODING COMPLEX SAMPLES                                            */
-
+/*                                                                     */
+/* PAGES 61 -> 85                                                      */
+/*                                                                     */
 /***********************************************************************/
 
 
+/* Returns the decoded complex sample data - only does the calculations the first time.  */
 vector<complex<double>> L0Packet::get_complex_samples()
 {
     if (!_complex_samples_set_flag)
@@ -255,6 +289,7 @@ vector<complex<double>> L0Packet::get_complex_samples()
 }
 
 
+/* Decodes the complex data based on the packets data format, and sets _complex_samples */
 void L0Packet::_decode() 
 {
     QUAD IE = QUAD("IE");
@@ -262,7 +297,6 @@ void L0Packet::_decode()
     QUAD QE = QUAD("QE");
     QUAD QO = QUAD("QO");
 
-    // bit_index is modified inside of the setter functions.
     int bit_index = 0;
 
     if (_data_format == 'A' || _data_format == 'B') 
@@ -295,16 +329,17 @@ void L0Packet::_decode()
 }
 
 
+/* Setter for _complex_samples - destroys _raw_user_data to free space */
 void L0Packet::_set_complex_samples()
 {
     _decode();
     _complex_samples_set_flag = true;
 
-    // swapping _raw_user_data with a blank vector to free memory
     vector<u_int8_t>().swap(_raw_user_data);
 }
 
 
+/* Gets the bit_index at the next word boundary (needed after a quad block is decoded) */
 int L0Packet::_get_next_word_boundary(const int& bit_index)
 {
     int offset = bit_index % WORD_SIZE;
@@ -314,9 +349,11 @@ int L0Packet::_get_next_word_boundary(const int& bit_index)
 
 
 /***********************************************************************/
-
+/*                                                                     */
 /* TYPE A AND B PACKETS                                                */
-
+/*                                                                     */
+/* SEE PAGE 61 FOR THE SPEC                                            */
+/*                                                                     */
 /***********************************************************************/
 
 
@@ -384,9 +421,11 @@ void L0Packet::_set_quad_types_a_and_b(QUAD& component, int& bit_index)
 
 
 /***********************************************************************/
-
+/*                                                                     */
 /* TYPE C PACKETS                                                      */
-
+/*                                                                     */
+/* SEE PAGES 62 -> 66 FOR THE SPEC                                     */
+/*                                                                     */
 /***********************************************************************/
 
 
@@ -504,9 +543,11 @@ void L0Packet::_set_quad_type_c(QUAD& component, int& bit_index)
 
 
 /***********************************************************************/
-
+/*                                                                     */
 /* TYPE D PACKETS                                                      */
-
+/*                                                                     */
+/* SEE PAGES 67 -> 74 FOR THE SPEC                                     */
+/*                                                                     */
 /***********************************************************************/
 
 
