@@ -15,17 +15,6 @@ Description: Main function with random command-line arguments for testing purpos
 using namespace std;
 
 
-ifstream open_file(string filename)
-{
-    std::ifstream data(filename, std::ios::binary);
-    if (!data.is_open()) 
-    {
-        throw runtime_error("Unable to open: " + filename);
-    }
-    return data;
-}
-
-
 void omp_test(string filename)
 {
     ifstream data = open_file(filename);
@@ -219,6 +208,11 @@ int main(int argc, char* argv[])
     }
     else if (command == "find_packets_of_type")
     {
+        if(argv[2] == __null || argv[3] == __null) 
+        {
+            cout << "Please enter the packet type and filename." << endl;
+            return 1;
+        }
         ifstream data = open_file(string(argv[3]));
 
         char type = char(argv[2][0]);
@@ -238,6 +232,11 @@ int main(int argc, char* argv[])
     }
     else if (command == "print_packet_type")
     {
+        if(argv[2] == __null || argv[3] == __null) 
+        {
+            cout << "Please enter the packet index and filename." << endl;
+            return 1;
+        }
         ifstream data = open_file(string(argv[3]));
 
         vector<L0Packet> packets = get_n_packets(data, stoi(argv[2]) + 1, false, 0);

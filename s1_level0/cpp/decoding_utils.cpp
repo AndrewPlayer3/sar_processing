@@ -132,3 +132,15 @@ u_int64_t read_n_bits(const std::vector<u_int8_t>& data, const int& start_bit, c
 
     return result;
 }
+
+
+/* Return ifstream for the given file */
+ifstream open_file(const string& filename)
+{
+    std::ifstream data(filename, std::ios::binary);
+    if (!data.is_open()) 
+    {
+        throw runtime_error("Unable to open: " + filename);
+    }
+    return data;
+}
