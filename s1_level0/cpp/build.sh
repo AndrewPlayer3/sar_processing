@@ -1,5 +1,7 @@
 #!/bin/bash
 
+mkdir bin 2>/dev/null
+
 echo "Compiling main to bin/main."
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
