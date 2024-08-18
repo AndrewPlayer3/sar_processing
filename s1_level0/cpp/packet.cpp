@@ -629,7 +629,7 @@ H_CODE L0Packet::_get_h_code_type_d(const u_int8_t& brc, int& bit_index, const b
 
             bit_index += 1;
 
-            u_int16_t m_code = huffman_decode(_raw_user_data, brc, bit_index);  // increments bit index
+            u_int16_t m_code = huffman_decode(_raw_user_data, brc, bit_index);
 
             h_code.signs.push_back(sign);
             h_code.m_codes.push_back(m_code);                
