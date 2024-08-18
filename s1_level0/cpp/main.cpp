@@ -130,8 +130,10 @@ int main(int argc, char* argv[])
 
     string command = string(argv[1]);
 
+
     if (command == "print_headers")
     {
+        
         if(argv[2] == __null || argv[3] == __null) 
         {
             cout << "Please enter a packet index and filename." << endl;
@@ -139,8 +141,10 @@ int main(int argc, char* argv[])
         }
         print_packet_at_index(string(argv[3]), stoi(argv[2]));
     }
+    
     else if (command == "time")
     {
+        
         if(argv[2] == __null || argv[3] == __null) 
         {
             cout << "Please enter the packet count to time and a filename." << endl;
@@ -152,8 +156,10 @@ int main(int argc, char* argv[])
 
         cout << "Decoded " << stoi(argv[2]) << " packets in " << runtime << "s." << endl;
     }
+
     else if (command == "print_pulse_info")
     {
+
         if(argv[2] == __null || argv[3] == __null) 
         {
             cout << "Please enter the packet index and filename." << endl;
@@ -161,8 +167,10 @@ int main(int argc, char* argv[])
         }
         print_packet_at_index(string(argv[3]), stoi(argv[2]), false, true);
     }
+    
     else if (command == "print_modes")
     {
+        
         if(argv[2] == __null || argv[3] == __null) 
         {
             cout << "Please enter the packet index and filename." << endl;
@@ -170,8 +178,10 @@ int main(int argc, char* argv[])
         }
         print_packet_at_index(string(argv[3]), stoi(argv[2]), false, false, true);
     }
+    
     else if (command == "thread_test")
     {
+        
         if(argv[2] == __null) 
         {
             cout << "Please enter the filename." << endl;
@@ -179,8 +189,10 @@ int main(int argc, char* argv[])
         }
         thread_test(string(argv[2]));
     }
+    
     else if (command == "omp_test")
     {
+        
         if(argv[2] == __null) 
         {
             cout << "Please enter the filename." << endl;
@@ -188,8 +200,10 @@ int main(int argc, char* argv[])
         }
         omp_test(string(argv[2]));
     }
+
     else if (command == "print_complex_samples")
     {
+
         if(argv[2] == __null || argv[3] == __null) 
         {
             cout << "Please enter the packet index and filename." << endl;
@@ -206,8 +220,10 @@ int main(int argc, char* argv[])
             cout << "Complex Value: " << sample << endl;
         }
     }
+
     else if (command == "find_packets_of_type")
     {
+
         if(argv[2] == __null || argv[3] == __null) 
         {
             cout << "Please enter the packet type and filename." << endl;
@@ -230,8 +246,10 @@ int main(int argc, char* argv[])
             }
         }
     }
+
     else if (command == "print_packet_type")
     {
+
         if(argv[2] == __null || argv[3] == __null) 
         {
             cout << "Please enter the packet index and filename." << endl;
