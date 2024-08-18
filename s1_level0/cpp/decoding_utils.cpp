@@ -12,7 +12,8 @@ Description: Functions to assist reading and decompressing binary data.
 #include "decoding_utils.hpp"
 
 
-/* Returns the next m_code using the relevant huffman tree for the given brc - checks length of bits in tree */
+/* Returns the next m_code using the relevant huffman tree for the given brc
+   Checks length of bits in tree to handle edge cases but is slower than huffman_decode */
 u_int16_t huffman_decode_with_length(const vector<u_int8_t>& data, const int& brc, int& bit_index)
 {
     vector<unordered_map<u_int16_t, u_int8_t>> huffman_coding = HUFFMAN_CODINGS_WITH_LENGTH[brc];
