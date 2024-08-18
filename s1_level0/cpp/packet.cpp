@@ -437,6 +437,7 @@ double L0Packet::_get_s_values_type_c(
         if (threshold_index <= BAQ_MODE_TO_THIDX.at(_baq_mode))
         {
             int flag = BAQ_MODE_TO_M_CODE.at(_baq_mode);
+
             if      (m_code <  flag) return pow(-1, sign) * double(m_code);
             else if (m_code == flag) return pow(-1, sign) * SIMPLE_RECONSTRUCTION_METHOD[0][_baq_mode - 3][threshold_index];
             else throw runtime_error("Invalid m_code in s_value generation.");
@@ -559,20 +560,11 @@ double L0Packet::_get_s_values_type_d(
 ) {
     if (threshold_index <= BRC_TO_THIDX[brc])
     {
-        int m_code_comparison_flag = BRC_TO_M_CODE[brc];
+        int flag = BRC_TO_M_CODE[brc];
 
-        if (m_code < m_code_comparison_flag)
-        {
-            return pow(-1.0, sign) * m_code;
-        }
-        else if (m_code == m_code_comparison_flag)
-        {
-            return pow(-1.0, sign) * SIMPLE_RECONSTRUCTION_METHOD[1][brc][threshold_index];
-        }
-        else
-        {
-            throw runtime_error("MCode is greater than the comparison flag.");
-        }
+        if      (m_code <  flag) return pow(-1.0, sign) * m_code;
+        else if (m_code == flag) return pow(-1.0, sign) * SIMPLE_RECONSTRUCTION_METHOD[1][brc][threshold_index];
+        else throw runtime_error("MCode is greater than the comparison flag.");
     }
     return pow(-1.0, sign) * NORMALIZED_RECONSTRUCTION_LEVELS[1][brc][m_code] * THIDX_TO_SF_ARRAY[threshold_index];
 }
