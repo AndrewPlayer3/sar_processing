@@ -367,7 +367,7 @@ class Packet:
             qe_s_value = construct_s_value(self.__qe_signs[i], self.__qe_m_codes[i])
             qo_s_value = construct_s_value(self.__qo_signs[i], self.__qo_m_codes[i])
             s_values.append([ie_s_value, io_s_value, qe_s_value, qo_s_value])
-        complex_s_values = np.zeros((2 * len(self.s_values), ), dtype=complex)
+        complex_s_values = np.zeros((2 * len(s_values), ), dtype=complex)
         for i in range(1, self.__num_quads+1):
             ie, io, qe, qo = tuple(s_values[i-1])
             complex_s_values[2*i-2] = ie + 1j*qe
