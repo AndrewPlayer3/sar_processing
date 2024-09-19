@@ -168,8 +168,8 @@ class Packet:
                 'ssb_flag': 1,
                 'polarization': self.get_polarization_str(),
                 'sas_test': 'test_mode' if self.__secondary_header['test_mode'] == '0' else 'normal',
-                'calibration_type': int(self.__secondary_header['cal_type'], 2),
-                'calibration_beam_address': int(self.__secondary_header['calibration_beam_address'], 2),
+                # 'calibration_type': int(self.__secondary_header['calibration_mode'], 2),
+                # 'calibration_beam_address': int(self.__secondary_header['calibration_beam_address'], 2),
             }
         else:
             raise ValueError(f'SSB Flag is Invalid: {ssb_flag}')
@@ -226,7 +226,6 @@ class Packet:
         for k, v in self.get_sas_ssb().items():
             secondary_header[k] = v
         return secondary_header
-
 
     def get_complex_samples(self):
         return self.__decode_user_data_field()
